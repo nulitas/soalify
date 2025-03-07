@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #1a1a1a;
+  --primary: #1f2937;
+  --accent: #9f7aea;
+  --section-bg: #f9f7f3;
+  --footer-bg: #021410;
+  --text-dark: #1a1a1a;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-space-grotesk);
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+@utility title-font {
+  font-family: var(--font-space-grotesk);
+}
+
+@utility content-font {
+  font-family: var(--font-inter);
+}
+
+@utility button-font {
+  font-family: var(--font-space-grotesk);
+}
+
+@utility section-title {
+  @apply text-sm mb-6 title-font font-medium uppercase tracking-wider text-black;
+}
+
+@utility section-heading {
+  @apply text-3xl md:text-4xl mb-16 max-w-2xl title-font font-semibold;
+}
+
+@utility section-description {
+  @apply text-base font-normal leading-relaxed max-w-3xl;
+  font-family: var(--font-inter);
+  color: var(--text-dark);
+}
+
+@utility footer-text {
+  @apply text-sm md:text-base button-font font-normal;
+}
+
+@utility nav-text {
+  @apply text-sm button-font font-normal;
+}
+
+.underline-word {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+.dark-section {
+  background-color: var(--footer-bg);
+}
+
+.section-bg {
+  background-color: var(--section-bg);
+}
