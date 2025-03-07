@@ -1,6 +1,6 @@
 export default function Usages() {
   return (
-    <section className="px-4 md:px-8 py-20 bg-white">
+    <section id="penggunaan" className="px-4 md:px-8 py-20 bg-white">
       <div className="max-w-7xl mx-auto">
         <h2 className="section-title">PENGGUNAAN</h2>
         <h3 className="section-heading">Penggunaan Soalify</h3>

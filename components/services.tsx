@@ -20,7 +20,7 @@ export default function Services() {
   ];
 
   return (
-    <section id="what-we-do" className="section-bg px-4 md:px-8 py-20">
+    <section id="tentang" className="section-bg px-4 md:px-8 py-20">
       <div className="max-w-7xl mx-auto">
         <h2 className="section-title">TENTANG</h2>
         <h3 className="section-heading">
