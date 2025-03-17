@@ -104,7 +104,7 @@ export default function GeneratedQuestions({
       </div>
 
       <div className="mt-4 md:mt-6 text-xs text-gray-500">
-        Dihasilkan menggunakan{method.toUpperCase()} method •{" "}
+        Dihasilkan menggunakan metode {method.toUpperCase()} •{" "}
         {new Date().toLocaleString()}
       </div>
     </div>

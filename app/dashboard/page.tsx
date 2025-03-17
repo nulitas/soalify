@@ -46,7 +46,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Main content area */}
-      <div className="flex-1 w-full">
+      <div className="flex-1 w-full md:ml-64">
         <DashboardHeader
           isMobileMenuOpen={isMobileMenuOpen}
           setIsMobileMenuOpen={setIsMobileMenuOpen}
@@ -57,7 +57,7 @@ export default function DashboardPage() {
           }}
         />
 
-        <main className="p-4 md:p-6 mt-24 md:mt-0">
+        <main className="p-4 md:p-6 mt-24 md:mt-16">
           <div className="max-w-7xl mx-auto">
             {activeTab === "generate" && (
               <>
@@ -131,6 +131,7 @@ export default function DashboardPage() {
                         <li className="flex items-start gap-2">
                           <span className="text-black font-bold">•</span>
                           <span>
+                            {" "}
                             Mulailah dengan 2-3 pertanyaan untuk menguji
                             kualitas
                           </span>

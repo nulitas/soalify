@@ -48,7 +48,7 @@ export default function DashboardHeader({
 
   return (
     <>
-      <header className="fixed md:static top-0 left-0 right-0 z-30 bg-white border-b border-gray-200 py-4 px-4 md:px-6">
+      <header className="fixed top-0 left-0 right-0 z-30 bg-white border-b border-gray-200 py-4 px-4 md:px-6 md:ml-64">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Logo */}
           <Link href="/dashboard" className="text-xl font-medium title-font">

@@ -18,17 +18,17 @@ export default function MobileMenu({
 }: MobileMenuProps) {
   const menuItems = [
     {
-      name: "Generate Questions",
+      name: "Membuat Soal",
       icon: BookOpen,
       tab: "generate" as const,
     },
     {
-      name: "Question History",
+      name: "Riwayat Soal",
       icon: History,
       tab: "history" as const,
     },
     {
-      name: "Settings",
+      name: "Pengaturan",
       icon: Settings,
       tab: "settings" as const,
     },
