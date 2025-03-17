@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { PlusCircle } from "lucide-react";
 import DashboardSidebar from "@/components/dashboard/dashboard-sidebar";
 import DashboardHeader from "@/components/dashboard/dashboard-header";
 import QuestionGenerator from "@/components/dashboard/question-generator";
@@ -15,6 +14,7 @@ export default function DashboardPage() {
     result: string;
     method: string;
   } | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleGenerateQuestions = async (data: {
     query_text: string;
@@ -40,17 +40,29 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-[#f9f7f3] flex">
-      <DashboardSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      {/* Desktop Sidebar - hidden on mobile */}
+      <div className="hidden md:block">
+        <DashboardSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      </div>
 
-      <div className="flex-1 flex flex-col ml-64">
-        <DashboardHeader />
+      {/* Main content area */}
+      <div className="flex-1 w-full">
+        <DashboardHeader
+          isMobileMenuOpen={isMobileMenuOpen}
+          setIsMobileMenuOpen={setIsMobileMenuOpen}
+          activeTab={activeTab}
+          setActiveTab={(tab) => {
+            setActiveTab(tab);
+            setIsMobileMenuOpen(false);
+          }}
+        />
 
-        <main className="flex-1 p-6">
-          <div className="max-w-6xl mx-auto">
+        <main className="p-4 md:p-6 mt-24 md:mt-0">
+          <div className="max-w-7xl mx-auto">
             {activeTab === "generate" && (
               <>
-                <div className="mb-8">
-                  <h1 className="text-3xl font-medium title-font mb-2">
+                <div className="mb-6 md:mb-8">
+                  <h1 className="text-2xl md:text-3xl font-medium title-font mb-2">
                     Generator Pertanyaan
                   </h1>
                   <p className="section-description text-gray-600">
@@ -58,12 +70,12 @@ export default function DashboardPage() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
                   <div className="lg:col-span-2">
                     <QuestionGenerator onGenerate={handleGenerateQuestions} />
 
                     {generatedContent && (
-                      <div className="mt-6">
+                      <div className="mt-4 md:mt-6">
                         <GeneratedQuestions
                           result={generatedContent.result}
                           method={generatedContent.method}
@@ -72,8 +84,8 @@ export default function DashboardPage() {
                     )}
                   </div>
 
-                  <div className="space-y-6">
-                    <div className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm">
+                  <div className="space-y-4 md:space-y-6">
+                    <div className="bg-white p-4 md:p-6 rounded-lg border border-gray-100 shadow-sm">
                       <h3 className="text-lg font-medium title-font mb-4">
                         Contoh Teks
                       </h3>
@@ -91,13 +103,13 @@ export default function DashboardPage() {
                             <span className="button-font text-sm truncate text-left">
                               {template}
                             </span>
-                            <PlusCircle className="w-5 h-5 text-gray-500 flex-shrink-0 ml-2" />
+                            <span className="flex-shrink-0 ml-2">+</span>
                           </button>
                         ))}
                       </div>
                     </div>
 
-                    <div className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm">
+                    <div className="bg-white p-4 md:p-6 rounded-lg border border-gray-100 shadow-sm">
                       <h3 className="text-lg font-medium title-font mb-4">
                         Tips
                       </h3>
@@ -139,10 +151,10 @@ export default function DashboardPage() {
 
             {activeTab === "history" && (
               <div>
-                <h1 className="text-3xl font-medium title-font mb-6">
+                <h1 className="text-2xl md:text-3xl font-medium title-font mb-6">
                   Riwayat Pertanyaan
                 </h1>
-                <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-6">
+                <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-4 md:p-6">
                   <p className="section-description">
                     Lihat riwayat pertanyaan Anda di sini
                   </p>
@@ -152,10 +164,10 @@ export default function DashboardPage() {
 
             {activeTab === "settings" && (
               <div>
-                <h1 className="text-3xl font-medium title-font mb-6">
+                <h1 className="text-2xl md:text-3xl font-medium title-font mb-6">
                   Pengaturan
                 </h1>
-                <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-6">
+                <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-4 md:p-6">
                   <p className="section-description">
                     Kelola pengaturan Anda di sini
                   </p>

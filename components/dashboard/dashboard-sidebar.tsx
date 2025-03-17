@@ -44,7 +44,7 @@ export default function DashboardSidebar({
     <div
       className={`bg-white border-r border-gray-200 h-screen transition-all duration-300 ${
         collapsed ? "w-20" : "w-64"
-      } flex flex-col fixed`}
+      } flex flex-col`}
     >
       <div className="p-4 border-b border-gray-200 flex items-center justify-between">
         <Link
@@ -53,6 +53,7 @@ export default function DashboardSidebar({
         >
           Soalify
         </Link>
+
         <button
           onClick={() => setCollapsed(!collapsed)}
           className="p-1 rounded-md hover:bg-gray-100"
@@ -65,7 +66,7 @@ export default function DashboardSidebar({
         </button>
       </div>
 
-      <div className="flex-1 py-6">
+      <div className="flex-1 py-6 overflow-y-auto">
         <ul className="space-y-2 px-3">
           {menuItems.map((item) => (
             <li key={item.tab}>

@@ -43,12 +43,12 @@ export default function QuestionGenerator({
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm">
-      <h2 className="text-xl font-medium title-font mb-6">
+    <div className="bg-white p-4 md:p-6 rounded-lg border border-gray-100 shadow-sm">
+      <h2 className="text-xl font-medium title-font mb-4 md:mb-6">
         Hasilkan Pertanyaan dari Teks
       </h2>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
         <div className="space-y-2">
           <label htmlFor="queryText" className="block text-sm button-font">
             Konten Teks
@@ -57,7 +57,7 @@ export default function QuestionGenerator({
             id="queryText"
             value={queryText}
             onChange={(e) => setQueryText(e.target.value)}
-            placeholder="Masukkan teks yang ingin Anda buat pertanyaannya..."
+            placeholder="Enter the text you want to generate questions from..."
             rows={6}
             className="w-full px-4 py-3 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-black resize-none"
             required
@@ -68,7 +68,7 @@ export default function QuestionGenerator({
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           <div className="space-y-2">
             <label htmlFor="numQuestions" className="block text-sm button-font">
               Jumlah Pertanyaan
@@ -120,7 +120,7 @@ export default function QuestionGenerator({
           <button
             type="submit"
             disabled={isLoading}
-            className="px-6 py-3 bg-black text-white rounded-full hover:bg-gray-800 transition-colors text-sm button-font flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+            className="px-4 md:px-6 py-3 bg-black text-white rounded-full hover:bg-gray-800 transition-colors text-sm button-font flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <>

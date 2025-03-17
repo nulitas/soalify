@@ -51,9 +51,9 @@ export default function GeneratedQuestions({
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-medium title-font">
+    <div className="bg-white p-4 md:p-6 rounded-lg border border-gray-100 shadow-sm">
+      <div className="flex items-center justify-between mb-4 md:mb-6">
+        <h2 className="text-lg md:text-xl font-medium title-font">
           Pertanyaan yang Dihasilkan
         </h2>
         <div className="flex items-center gap-2">
@@ -78,11 +78,11 @@ export default function GeneratedQuestions({
         </div>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-4 md:space-y-6">
         {parsedQuestions.map((item, index) => (
           <div
             key={index}
-            className="border border-gray-100 rounded-md p-4 bg-gray-50"
+            className="border border-gray-100 rounded-md p-3 md:p-4 bg-gray-50"
           >
             <div className="mb-3">
               <div className="flex items-center gap-2 mb-2">
@@ -90,21 +90,21 @@ export default function GeneratedQuestions({
                   Pertanyaan {index + 1}
                 </span>
               </div>
-              <p className="text-base">{item.question}</p>
+              <p className="text-sm md:text-base">{item.question}</p>
             </div>
 
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-sm font-medium button-font">Jawaban</span>
               </div>
-              <p className="text-base">{item.answer}</p>
+              <p className="text-sm md:text-base">{item.answer}</p>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="mt-6 text-xs text-gray-500">
-        Dihasilkan menggunakan {method.toUpperCase()} method •{" "}
+      <div className="mt-4 md:mt-6 text-xs text-gray-500">
+        Dihasilkan menggunakan{method.toUpperCase()} method •{" "}
         {new Date().toLocaleString()}
       </div>
     </div>
