@@ -5,8 +5,6 @@ import type React from "react";
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -27,7 +25,6 @@ export default function RegisterPage() {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
-    // Clear error when typing
     if (errors[name as keyof typeof errors]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
@@ -37,36 +34,32 @@ export default function RegisterPage() {
     let isValid = true;
     const newErrors = { ...errors };
 
-    // Name validation
     if (!formData.name) {
-      newErrors.name = "Name is required";
+      newErrors.name = "Nama lengkap dibutuhkan";
       isValid = false;
     }
 
-    // Email validation
     if (!formData.email) {
-      newErrors.email = "Email is required";
+      newErrors.email = "Email dibutuhkan";
       isValid = false;
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Email is invalid";
+      newErrors.email = "Email tidak valid";
       isValid = false;
     }
 
-    // Password validation
     if (!formData.password) {
-      newErrors.password = "Password is required";
+      newErrors.password = "Password dibutuhkan";
       isValid = false;
     } else if (formData.password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters";
+      newErrors.password = "Password minimal 8 karakter";
       isValid = false;
     }
 
-    // Confirm password validation
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = "Please confirm your password";
+      newErrors.confirmPassword = "Konfirmasi password dibutuhkan";
       isValid = false;
     } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
+      newErrors.confirmPassword = "Password tidak cocok";
       isValid = false;
     }
 
@@ -78,17 +71,14 @@ export default function RegisterPage() {
     e.preventDefault();
 
     if (validateForm()) {
-      // Here you would handle the actual registration
       console.log("Registration form submitted:", formData);
-      // For demo purposes, just show an alert
+
       alert("Registration successful!");
     }
   };
 
   return (
     <main className="min-h-screen flex flex-col">
-      <Navbar />
-
       <div className="flex-1 flex items-center justify-center px-4 py-20">
         <div className="w-full max-w-md">
           <div className="mb-8">
@@ -97,24 +87,23 @@ export default function RegisterPage() {
               className="inline-flex items-center text-sm button-font hover:underline"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to home
+              Kembali
             </Link>
           </div>
 
           <div className="bg-white p-8 rounded-lg border border-gray-100 shadow-sm">
             <h1 className="text-2xl md:text-3xl mb-6 title-font font-medium">
-              Create an account
+              Buat akun
             </h1>
 
             <p className="section-description mb-8">
-              Join us to elevate your software quality with our expert QA
-              solutions.
+              Daftar untuk membuat akun baru.
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <label htmlFor="name" className="block text-sm button-font">
-                  Full Name
+                  Nama Lengkap
                 </label>
                 <input
                   type="text"
@@ -123,7 +112,7 @@ export default function RegisterPage() {
                   value={formData.name}
                   onChange={handleChange}
                   className="w-full px-4 py-3 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-black"
-                  placeholder="Enter your name"
+                  placeholder="Masukkan nama lengkap Anda"
                 />
                 {errors.name && (
                   <p className="text-red-500 text-xs mt-1">{errors.name}</p>
@@ -132,7 +121,7 @@ export default function RegisterPage() {
 
               <div className="space-y-2">
                 <label htmlFor="email" className="block text-sm button-font">
-                  Email Address
+                  Email
                 </label>
                 <input
                   type="email"
@@ -141,7 +130,7 @@ export default function RegisterPage() {
                   value={formData.email}
                   onChange={handleChange}
                   className="w-full px-4 py-3 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-black"
-                  placeholder="Enter your email"
+                  placeholder="Masukkan email Anda"
                 />
                 {errors.email && (
                   <p className="text-red-500 text-xs mt-1">{errors.email}</p>
@@ -160,7 +149,7 @@ export default function RegisterPage() {
                     value={formData.password}
                     onChange={handleChange}
                     className="w-full px-4 py-3 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-black pr-10"
-                    placeholder="Enter your password"
+                    placeholder="Masukkan password Anda"
                   />
                   <button
                     type="button"
@@ -184,7 +173,7 @@ export default function RegisterPage() {
                   htmlFor="confirmPassword"
                   className="block text-sm button-font"
                 >
-                  Confirm Password
+                  Konfirmasi Password
                 </label>
                 <input
                   type="password"
@@ -193,7 +182,7 @@ export default function RegisterPage() {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   className="w-full px-4 py-3 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-black"
-                  placeholder="Confirm your password"
+                  placeholder="Masukkan ulang password Anda"
                 />
                 {errors.confirmPassword && (
                   <p className="text-red-500 text-xs mt-1">
@@ -206,26 +195,24 @@ export default function RegisterPage() {
                 type="submit"
                 className="w-full px-6 py-3 bg-black text-white rounded-full hover:bg-gray-800 transition-colors duration-200 ease-in-out text-sm button-font"
               >
-                Create Account
+                Daftar
               </button>
             </form>
 
             <div className="mt-8 text-center">
               <p className="text-sm content-font">
-                Already have an account?
+                Sudah punya akun?{" "}
                 <Link
-                  href="/login"
+                  href="/auth/login"
                   className="ml-2 text-sm button-font font-medium hover:underline"
                 >
-                  Sign in
+                  Masuk
                 </Link>
               </p>
             </div>
           </div>
         </div>
       </div>
-
-      <Footer />
     </main>
   );
 }

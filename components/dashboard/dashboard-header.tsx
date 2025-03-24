@@ -30,17 +30,17 @@ export default function DashboardHeader({
 
   const menuItems = [
     {
-      name: "Generate Questions",
+      name: "Membuat Soal",
       icon: BookOpen,
       tab: "generate" as const,
     },
     {
-      name: "Question History",
+      name: "Riwayat Soal",
       icon: History,
       tab: "history" as const,
     },
     {
-      name: "Settings",
+      name: "Pengaturan",
       icon: Settings,
       tab: "settings" as const,
     },
@@ -138,7 +138,7 @@ export default function DashboardHeader({
                 <span className="nav-text">Home</span>
               </Link>
               <Link
-                href="/login"
+                href="/auth/login"
                 className="flex items-center gap-3 py-2"
                 onClick={() => setIsMobileMenuOpen(false)}
               >

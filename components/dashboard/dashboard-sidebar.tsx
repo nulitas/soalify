@@ -68,7 +68,7 @@ export default function DashboardSidebar({
             <span className="button-font">Home</span>
           </Link>
           <Link
-            href="/login"
+            href="/auth/login"
             className="flex items-center gap-3 p-3 rounded-md hover:bg-gray-100 transition-colors"
           >
             <LogOut className="w-5 h-5 flex-shrink-0" />
