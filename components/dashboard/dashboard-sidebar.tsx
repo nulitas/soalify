@@ -1,11 +1,31 @@
 "use client";
 
 import Link from "next/link";
-import { BookOpen, History, Settings, LogOut, Home } from "lucide-react";
+import {
+  BookOpen,
+  Package,
+  Tag,
+  FileText,
+  Settings,
+  LogOut,
+  Home,
+} from "lucide-react";
 
 interface DashboardSidebarProps {
-  activeTab: "generate" | "history" | "settings";
-  setActiveTab: (tab: "generate" | "history" | "settings") => void;
+  activeTab:
+    | "membuat-soal"
+    | "manajemen-paket-soal"
+    | "manajemen-tag"
+    | "manajemen-dokumen"
+    | "pengaturan";
+  setActiveTab: (
+    tab:
+      | "membuat-soal"
+      | "manajemen-paket-soal"
+      | "manajemen-tag"
+      | "manajemen-dokumen"
+      | "pengaturan"
+  ) => void;
 }
 
 export default function DashboardSidebar({
@@ -16,17 +36,27 @@ export default function DashboardSidebar({
     {
       name: "Membuat Soal",
       icon: BookOpen,
-      tab: "generate" as const,
+      tab: "membuat-soal" as const,
     },
     {
-      name: "Riwayat Soal",
-      icon: History,
-      tab: "history" as const,
+      name: "Manajemen Paket Soal",
+      icon: Package,
+      tab: "manajemen-paket-soal" as const,
+    },
+    {
+      name: "Manajemen Tag",
+      icon: Tag,
+      tab: "manajemen-tag" as const,
+    },
+    {
+      name: "Manajemen Dokumen",
+      icon: FileText,
+      tab: "manajemen-dokumen" as const,
     },
     {
       name: "Pengaturan",
       icon: Settings,
-      tab: "settings" as const,
+      tab: "pengaturan" as const,
     },
   ];
 
@@ -72,7 +102,7 @@ export default function DashboardSidebar({
             className="flex items-center gap-3 p-3 rounded-md hover:bg-gray-100 transition-colors"
           >
             <LogOut className="w-5 h-5 flex-shrink-0" />
-            <span className="button-font">Logout</span>
+            <span className="button-font">Keluar</span>
           </Link>
         </div>
       </div>

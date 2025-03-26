@@ -57,7 +57,7 @@ export default function QuestionGenerator({
             id="queryText"
             value={queryText}
             onChange={(e) => setQueryText(e.target.value)}
-            placeholder="Enter the text you want to generate questions from..."
+            placeholder="Masukkan teks yang ingin Anda buat pertanyaan..."
             rows={6}
             className="w-full px-4 py-3 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-black resize-none"
             required
@@ -79,19 +79,14 @@ export default function QuestionGenerator({
               value={numQuestions}
               onChange={(e) =>
                 setNumQuestions(
-                  Math.max(
-                    1,
-                    Math.min(10, Number.parseInt(e.target.value) || 1)
-                  )
+                  Math.max(1, Math.min(5, Number.parseInt(e.target.value) || 1))
                 )
               }
               min="1"
               max="10"
               className="w-full px-4 py-3 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-black"
             />
-            <p className="text-xs text-gray-500">
-              Pilih antara 1-10 pertanyaan
-            </p>
+            <p className="text-xs text-gray-500">Pilih antara 1-5 pertanyaan</p>
           </div>
 
           <div className="space-y-2">
@@ -125,7 +120,7 @@ export default function QuestionGenerator({
             {isLoading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Generating...
+                Membuat Soal...
               </>
             ) : (
               "Bikin Soal"

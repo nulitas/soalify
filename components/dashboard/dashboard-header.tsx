@@ -1,13 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import {
-  Bell,
-  Search,
   User,
   BookOpen,
-  History,
+  Package,
+  Tag,
+  FileText,
   Settings,
   LogOut,
   Home,
@@ -16,8 +15,20 @@ import {
 interface DashboardHeaderProps {
   isMobileMenuOpen: boolean;
   setIsMobileMenuOpen: (isOpen: boolean) => void;
-  activeTab: "generate" | "history" | "settings";
-  setActiveTab: (tab: "generate" | "history" | "settings") => void;
+  activeTab:
+    | "membuat-soal"
+    | "manajemen-paket-soal"
+    | "manajemen-tag"
+    | "manajemen-dokumen"
+    | "pengaturan";
+  setActiveTab: (
+    tab:
+      | "membuat-soal"
+      | "manajemen-paket-soal"
+      | "manajemen-tag"
+      | "manajemen-dokumen"
+      | "pengaturan"
+  ) => void;
 }
 
 export default function DashboardHeader({
@@ -26,23 +37,31 @@ export default function DashboardHeader({
   activeTab,
   setActiveTab,
 }: DashboardHeaderProps) {
-  const [searchQuery, setSearchQuery] = useState("");
-
   const menuItems = [
     {
       name: "Membuat Soal",
       icon: BookOpen,
-      tab: "generate" as const,
+      tab: "membuat-soal" as const,
     },
     {
-      name: "Riwayat Soal",
-      icon: History,
-      tab: "history" as const,
+      name: "Manajemen Paket Soal",
+      icon: Package,
+      tab: "manajemen-paket-soal" as const,
+    },
+    {
+      name: "Manajemen Tag",
+      icon: Tag,
+      tab: "manajemen-tag" as const,
+    },
+    {
+      name: "Manajemen Dokumen",
+      icon: FileText,
+      tab: "manajemen-dokumen" as const,
     },
     {
       name: "Pengaturan",
       icon: Settings,
-      tab: "settings" as const,
+      tab: "pengaturan" as const,
     },
   ];
 
@@ -56,33 +75,16 @@ export default function DashboardHeader({
           </Link>
 
           {/* Desktop Search */}
-          <div className="hidden md:block relative w-full max-w-md mx-4">
-            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <Search className="w-5 h-5 text-gray-400" />
-            </div>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search questions..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-black"
-            />
-          </div>
 
-          {/* User Profile & Notifications */}
+          {/* User Profile */}
           <div className="flex items-center gap-4">
-            <button className="relative p-2 rounded-full hover:bg-gray-100 transition-colors">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
-
             <div className="hidden md:flex items-center gap-3">
               <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center">
                 <User className="w-5 h-5 text-gray-500" />
               </div>
               <div>
-                <p className="text-sm font-medium title-font">User Name</p>
-                <p className="text-xs text-gray-500">Free Plan</p>
+                <p className="text-sm font-medium title-font">Andra</p>
+                <p className="text-xs text-gray-500">Pengguna</p>
               </div>
             </div>
 
