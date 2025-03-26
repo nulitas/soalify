@@ -24,14 +24,28 @@ export default function DashboardPage() {
     try {
       console.log("API Request:", data);
 
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const response = await fetch(
+        process.env.NEXT_PUBLIC_API_URL + "/generate-questions",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        }
+      );
 
-      const response = {
-        result: `Pertanyaan 1: Bagaimana definisi dari Bahasa Indonesia sebagai Bahasa Nasional Indonesia?\n   Jawaban 1: Bahasa Indonesia adalah bahasa yang digunakan secara luas di seluruh wilayah negara ini.\n\n   Pertanyaan 2: Apa salah satu aspek pengertian dari Bahasa Indonesia?\n   Jawaban 2: Salah satu aspek pengertian dari Bahasa Indonesia adalah sebagai bahasa nasional Indonesia.`,
-        method: "llm",
-      };
+      if (!response.ok) {
+        throw new Error("Failed to fetch questions");
+      }
 
-      setGeneratedContent(response);
+      const responseData = await response.json();
+      console.log("API Response:", responseData);
+
+      setGeneratedContent({
+        result: responseData.result,
+        method: responseData.method,
+      });
     } catch (error) {
       console.error("Error generating questions:", error);
       alert("Failed to generate questions. Please try again.");

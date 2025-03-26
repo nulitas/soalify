@@ -1,16 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Copy, Check, Save } from "lucide-react";
 
 interface GeneratedQuestionsProps {
-  result: string;
+  result: {
+    questions: { question: string; answer: string }[];
+    metadata: { count: number; status: string };
+  };
   method: string;
-}
-
-interface ParsedQuestion {
-  question: string;
-  answer: string;
 }
 
 export default function GeneratedQuestions({
@@ -18,30 +16,16 @@ export default function GeneratedQuestions({
   method,
 }: GeneratedQuestionsProps) {
   const [copied, setCopied] = useState(false);
-  const [parsedQuestions, setParsedQuestions] = useState<ParsedQuestion[]>([]);
-
-  useEffect(() => {
-    const parseQuestions = (text: string): ParsedQuestion[] => {
-      const pairs: ParsedQuestion[] = [];
-      const regex =
-        /Pertanyaan (\d+): (.*?)\n\s*Jawaban \d+: (.*?)(?=\n\n\s*Pertanyaan \d+:|$)/gs;
-
-      let match;
-      while ((match = regex.exec(text)) !== null) {
-        pairs.push({
-          question: match[2].trim(),
-          answer: match[3].trim(),
-        });
-      }
-
-      return pairs;
-    };
-
-    setParsedQuestions(parseQuestions(result));
-  }, [result]);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(result);
+    const formattedText = result.questions
+      .map(
+        (q, index) =>
+          `Pertanyaan ${index + 1}: ${q.question}\nJawaban: ${q.answer}`
+      )
+      .join("\n\n");
+
+    navigator.clipboard.writeText(formattedText);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -79,7 +63,7 @@ export default function GeneratedQuestions({
       </div>
 
       <div className="space-y-4 md:space-y-6">
-        {parsedQuestions.map((item, index) => (
+        {result.questions.map((item, index) => (
           <div
             key={index}
             className="border border-gray-100 rounded-md p-3 md:p-4 bg-gray-50"
