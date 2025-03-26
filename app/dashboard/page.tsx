@@ -11,7 +11,7 @@ export default function DashboardPage() {
     "generate" | "history" | "settings"
   >("generate");
   const [generatedContent, setGeneratedContent] = useState<{
-    result: string;
+    result: { questions: { question: string; answer: string }[] };
     method: string;
   } | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

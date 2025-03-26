@@ -6,7 +6,7 @@ import { Copy, Check, Save } from "lucide-react";
 interface GeneratedQuestionsProps {
   result: {
     questions: { question: string; answer: string }[];
-    metadata: { count: number; status: string };
+    // metadata: { count: number; status: string };
   };
   method: string;
 }
