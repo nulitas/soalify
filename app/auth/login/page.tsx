@@ -1,12 +1,14 @@
 "use client";
 
 import type React from "react";
-
 import { useState } from "react";
+import axios from "axios";
 import Link from "next/link";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
+
 export default function LoginPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -16,19 +18,17 @@ export default function LoginPage() {
     email: "",
     password: "",
   });
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-
-    if (errors[name as keyof typeof errors]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
+    setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const validateForm = () => {
     let isValid = true;
-    const newErrors = { ...errors };
+    const newErrors = { email: "", password: "" };
 
     if (!formData.email) {
       newErrors.email = "Email dibutuhkan";
@@ -50,13 +50,40 @@ export default function LoginPage() {
     return isValid;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateForm()) return;
 
-    if (validateForm()) {
-      console.log("Login form submitted:", formData);
+    setLoading(true);
+    try {
+      const requestBody = new URLSearchParams();
+      requestBody.append("username", formData.email);
+      requestBody.append("password", formData.password);
+
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/users/login`,
+        requestBody,
+        { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+      );
+
+      console.log("Login successful:", response.data);
       alert("Login successful!");
-      redirect("/dashboard");
+      router.push("/dashboard");
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error(
+          "Login error details:",
+          error.response?.data || error.message
+        );
+        setErrors((prev) => ({
+          ...prev,
+          email: "Login gagal. Periksa kredensial Anda.",
+        }));
+      } else {
+        console.error("Unexpected error:", error);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -69,20 +96,16 @@ export default function LoginPage() {
               href="/"
               className="inline-flex items-center text-sm button-font hover:underline"
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Kembali
+              <ArrowLeft className="w-4 h-4 mr-2" /> Kembali
             </Link>
           </div>
-
           <div className="bg-white p-8 rounded-lg border border-gray-100 shadow-sm">
             <h1 className="text-2xl md:text-3xl mb-6 title-font font-medium">
               Selamat Datang
             </h1>
-
             <p className="section-description mb-8">
               Masuk untuk mengakses akun Anda.
             </p>
-
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <label htmlFor="email" className="block text-sm button-font">
@@ -101,7 +124,6 @@ export default function LoginPage() {
                   <p className="text-red-500 text-xs mt-1">{errors.email}</p>
                 )}
               </div>
-
               <div className="space-y-2">
                 <label htmlFor="password" className="block text-sm button-font">
                   Password
@@ -132,24 +154,14 @@ export default function LoginPage() {
                   <p className="text-red-500 text-xs mt-1">{errors.password}</p>
                 )}
               </div>
-
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  className="text-sm button-font hover:underline"
-                >
-                  Lupa Password?
-                </button>
-              </div>
-
               <button
                 type="submit"
+                disabled={loading}
                 className="w-full px-6 py-3 bg-black text-white rounded-full hover:bg-gray-800 transition-colors duration-200 ease-in-out text-sm button-font"
               >
-                Masuk
+                {loading ? "Memproses..." : "Masuk"}
               </button>
             </form>
-
             <div className="mt-8 text-center">
               <p className="text-sm content-font">
                 Tidak punya akun?{" "}
