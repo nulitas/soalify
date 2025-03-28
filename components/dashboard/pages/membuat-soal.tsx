@@ -1,5 +1,6 @@
 "use client";
 
+import axios from "axios";
 import { useState } from "react";
 import QuestionGenerator from "@/components/dashboard/question-generator";
 import GeneratedQuestions from "@/components/dashboard/generated-questions";
@@ -18,27 +19,21 @@ export default function MembuatSoal() {
     try {
       console.log("API Request:", data);
 
-      const response = await fetch(
-        process.env.NEXT_PUBLIC_API_URL + "/generate-questions",
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/questions/generate`,
+        data,
         {
-          method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(data),
         }
       );
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch questions");
-      }
-
-      const responseData = await response.json();
-      console.log("API Response:", responseData);
+      console.log("API Response:", response.data);
 
       setGeneratedContent({
-        result: responseData.result,
-        method: responseData.method,
+        result: response.data.result,
+        method: response.data.method,
       });
     } catch (error) {
       console.error("Error generating questions:", error);
