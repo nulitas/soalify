@@ -1,6 +1,88 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import axios from "axios";
 import { FileText, Upload, Trash2 } from "lucide-react";
 
 export default function ManajemenDokumen() {
+  const [documents, setDocuments] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    fetchDocuments();
+  }, []);
+
+  const fetchDocuments = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/database/documents`
+      );
+      setDocuments(response.data.document_sources || []);
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.detail || "Gagal mengambil dokumen");
+      } else {
+        setError("Terjadi kesalahan yang tidak diketahui.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (filename: string) => {
+    if (!confirm(`Apakah Anda yakin ingin menghapus ${filename}?`)) return;
+
+    try {
+      await axios.delete(
+        `${process.env.NEXT_PUBLIC_API_URL}/database/source/${filename}`
+      );
+      setDocuments((prevDocs) => prevDocs.filter((doc) => doc !== filename));
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        alert(err.response?.data?.detail || "Gagal menghapus dokumen");
+      } else {
+        alert("Terjadi kesalahan yang tidak diketahui.");
+      }
+    }
+  };
+
+  const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== "application/pdf") {
+      alert("Hanya file PDF yang diperbolehkan.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("files", file);
+
+    setUploading(true);
+    try {
+      await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/database/upload-documents`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+
+      alert("Dokumen berhasil diunggah!");
+      fetchDocuments();
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        alert(err.response?.data?.detail || "Gagal mengunggah dokumen");
+      } else {
+        alert("Terjadi kesalahan yang tidak diketahui.");
+      }
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <div>
       <h1 className="text-2xl md:text-3xl font-medium title-font mb-6">
@@ -20,51 +102,51 @@ export default function ManajemenDokumen() {
           <p className="text-sm text-gray-500 mb-4">
             Seret dan lepas file PDF di sini
           </p>
-          <button className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors">
-            Pilih File
-          </button>
+
+          <label className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors cursor-pointer">
+            {uploading ? "Mengunggah..." : "Pilih File"}
+            <input
+              type="file"
+              accept="application/pdf"
+              className="hidden"
+              onChange={handleUpload}
+            />
+          </label>
         </div>
 
         {/* Document list */}
         <div className="mt-8">
           <h3 className="text-lg font-medium mb-4">Dokumen Anda</h3>
-          <div className="space-y-3">
-            {[
-              {
-                name: "Materi_Bahasa_Indonesia.pdf",
-                date: "12 Maret 2025",
-                size: "2.4 MB",
-              },
-              {
-                name: "Persona_6_Remake.pdf",
-                date: "10 Maret 2077",
-                size: "1.8 MB",
-              },
-              {
-                name: "Stardew_Valley_Guide.pdf",
-                date: "5 Maret 2025",
-                size: "256 KB",
-              },
-            ].map((doc, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between p-3 border border-gray-200 rounded-md"
-              >
-                <div className="flex items-center">
-                  <FileText className="w-5 h-5 mr-3 text-gray-500" />
-                  <div>
-                    <p className="font-medium">{doc.name}</p>
-                    <p className="text-xs text-gray-500">
-                      {doc.date} • {doc.size}
-                    </p>
+
+          {loading ? (
+            <p className="text-sm text-gray-500">Memuat dokumen...</p>
+          ) : error ? (
+            <p className="text-red-500 text-sm">{error}</p>
+          ) : documents.length === 0 ? (
+            <p className="text-sm text-gray-500">
+              Tidak ada dokumen yang tersedia.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {documents.map((doc, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-3 border border-gray-200 rounded-md"
+                >
+                  <div className="flex items-center">
+                    <FileText className="w-5 h-5 mr-3 text-gray-500" />
+                    <p className="font-medium">{doc}</p>
                   </div>
+                  <button
+                    onClick={() => handleDelete(doc)}
+                    className="p-2 text-gray-500 hover:text-red-500"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
-                <button className="p-2 text-gray-500 hover:text-red-500">
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
