@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Loader2, Trash2 } from "lucide-react";
+import { Plus, Loader2, Trash2, X } from "lucide-react";
 import Link from "next/link";
 import axios from "axios";
 
@@ -18,15 +18,39 @@ interface PaketSoal {
   }[];
 }
 
+interface Tag {
+  tag_id: number;
+  tag_name: string;
+  user_id?: number;
+}
+
 export default function ManajemenPaketSoal() {
   const [searchQuery, setSearchQuery] = useState("");
   const [paketSoalList, setPaketSoalList] = useState<PaketSoal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedTags, setSelectedTags] = useState<number[]>([]);
+  const [availableTags, setAvailableTags] = useState<Tag[]>([]);
+  const [isLoadingTags, setIsLoadingTags] = useState(true);
 
   useEffect(() => {
     fetchPackages();
+    fetchAllTags();
   }, []);
+
+  const fetchAllTags = async () => {
+    try {
+      setIsLoadingTags(true);
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/tags/`
+      );
+      setAvailableTags(response.data);
+    } catch (err) {
+      console.error("Failed to fetch tags:", err);
+    } finally {
+      setIsLoadingTags(false);
+    }
+  };
 
   const fetchPackages = async () => {
     try {
@@ -72,9 +96,34 @@ export default function ManajemenPaketSoal() {
     }
   };
 
-  const filteredPackages = paketSoalList.filter((pkg) =>
-    pkg.package_name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const handleTagSelect = (tagId: number) => {
+    if (selectedTags.includes(tagId)) {
+      setSelectedTags(selectedTags.filter((id) => id !== tagId));
+    } else {
+      setSelectedTags([...selectedTags, tagId]);
+    }
+  };
+
+  const removeTag = (tagId: number) => {
+    setSelectedTags(selectedTags.filter((id) => id !== tagId));
+  };
+
+  const getTagName = (tagId: number) => {
+    const tag = availableTags.find((t) => t.tag_id === tagId);
+    return tag ? tag.tag_name : "";
+  };
+
+  const filteredPackages = paketSoalList.filter((pkg) => {
+    const matchesSearch = pkg.package_name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+
+    const matchesTags =
+      selectedTags.length === 0 ||
+      pkg.tags.some((tag) => selectedTags.includes(tag.tag_id));
+
+    return matchesSearch && matchesTags;
+  });
 
   return (
     <div>
@@ -97,14 +146,78 @@ export default function ManajemenPaketSoal() {
       )}
 
       <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-4 md:p-6">
-        <div className="mb-6 relative">
-          <input
-            type="text"
-            placeholder="Cari paket soal..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-4 py-2 pl-10 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-black"
-          />
+        <div className="mb-6">
+          <div className="relative mb-4">
+            <input
+              type="text"
+              placeholder="Cari paket soal..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-2 pl-10 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-black"
+            />
+          </div>
+
+          {/* Tag filtering section */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Filter berdasarkan tag:
+            </label>
+            <div className="flex flex-wrap gap-2 mb-3">
+              {isLoadingTags ? (
+                <span className="text-sm text-gray-500">Memuat tag...</span>
+              ) : (
+                <select
+                  className="px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-black"
+                  onChange={(e) => {
+                    if (e.target.value)
+                      handleTagSelect(parseInt(e.target.value));
+                    e.target.value = "";
+                  }}
+                  value=""
+                >
+                  <option value="">Pilih tag...</option>
+                  {availableTags.map((tag) => (
+                    <option
+                      key={tag.tag_id}
+                      value={tag.tag_id}
+                      disabled={selectedTags.includes(tag.tag_id)}
+                    >
+                      {tag.tag_name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+
+            {/* Display selected tags with remove option */}
+            {selectedTags.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-2">
+                {selectedTags.map((tagId) => (
+                  <div
+                    key={tagId}
+                    className="flex items-center bg-gray-100 px-3 py-1 rounded-md"
+                  >
+                    <span className="text-sm mr-2">{getTagName(tagId)}</span>
+                    <button
+                      onClick={() => removeTag(tagId)}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+
+                {selectedTags.length > 0 && (
+                  <button
+                    className="text-sm text-blue-600 hover:text-blue-800"
+                    onClick={() => setSelectedTags([])}
+                  >
+                    Hapus semua filter
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         {isLoading ? (
