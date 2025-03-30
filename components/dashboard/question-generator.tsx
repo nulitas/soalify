@@ -102,7 +102,7 @@ export default function QuestionGenerator({
                 className="w-4 h-4 text-black focus:ring-black border-gray-300 rounded"
               />
               <label htmlFor="useRag" className="ml-2 block text-sm">
-                Gunakan RAG (Retrieval Augmented Generation)
+                Gunakan Informasi dari Dokumen yang tersimpan
               </label>
             </div>
             <p className="text-xs text-gray-500">

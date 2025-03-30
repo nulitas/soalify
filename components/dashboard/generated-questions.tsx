@@ -1,12 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Copy, Check, Save } from "lucide-react";
+import { Copy, Check } from "lucide-react";
 
 interface GeneratedQuestionsProps {
   result: {
     questions: { question: string; answer: string }[];
-    // metadata: { count: number; status: string };
   };
   method: string;
 }
@@ -30,10 +29,6 @@ export default function GeneratedQuestions({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleSave = () => {
-    alert("Questions saved to your collection!");
-  };
-
   return (
     <div className="bg-white p-4 md:p-6 rounded-lg border border-gray-100 shadow-sm">
       <div className="flex items-center justify-between mb-4 md:mb-6">
@@ -51,13 +46,6 @@ export default function GeneratedQuestions({
             ) : (
               <Copy className="w-5 h-5" />
             )}
-          </button>
-          <button
-            onClick={handleSave}
-            className="p-2 rounded-md hover:bg-gray-100 transition-colors"
-            title="Save questions"
-          >
-            <Save className="w-5 h-5" />
           </button>
         </div>
       </div>
