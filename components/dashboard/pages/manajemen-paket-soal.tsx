@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2, Trash2 } from "lucide-react";
 import Link from "next/link";
 import axios from "axios";
 
@@ -25,39 +25,52 @@ export default function ManajemenPaketSoal() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchPackages = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/packages/`
-        );
+    fetchPackages();
+  }, []);
 
-        interface ApiPackage {
+  const fetchPackages = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/packages/`
+      );
+      const formattedData = response.data.map(
+        (pkg: {
           id: number;
           package_name: string;
           tags?: { tag_id: number; tag_name: string }[];
           questions?: { question: string; answer: string }[];
-        }
-
-        const formattedData = response.data.map((pkg: ApiPackage) => ({
+        }) => ({
           package_id: pkg.id,
           package_name: pkg.package_name,
           tags: pkg.tags || [],
           questions: pkg.questions || [],
-        }));
+        })
+      );
+      setPaketSoalList(formattedData);
+    } catch (err) {
+      console.error("Failed to fetch packages:", err);
+      setError("Gagal memuat data paket soal. Silakan coba lagi.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-        setPaketSoalList(formattedData);
-      } catch (err) {
-        console.error("Failed to fetch packages:", err);
-        setError("Gagal memuat data paket soal. Silakan coba lagi.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchPackages();
-  }, []);
+  const deletePackage = async (packageId: number) => {
+    if (!confirm("Apakah Anda yakin ingin menghapus paket ini?")) return;
+    try {
+      await axios.delete(
+        `${process.env.NEXT_PUBLIC_API_URL}/packages/${packageId}`
+      );
+      setPaketSoalList((prev) =>
+        prev.filter((pkg) => pkg.package_id !== packageId)
+      );
+    } catch (err) {
+      console.error("Gagal menghapus paket soal:", err);
+      alert("Gagal menghapus paket soal. Silakan coba lagi.");
+    }
+  };
 
   const filteredPackages = paketSoalList.filter((pkg) =>
     pkg.package_name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -69,10 +82,12 @@ export default function ManajemenPaketSoal() {
         <h1 className="text-2xl md:text-3xl font-medium title-font">
           Manajemen Paket Soal
         </h1>
-        <button className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          Buat Paket Baru
-        </button>
+        <Link
+          href="/dashboard/manajemen-paket-soal/tambah"
+          className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors flex items-center gap-2"
+        >
+          <Plus className="w-4 h-4" /> Buat Paket Baru
+        </Link>
       </div>
 
       {error && (
@@ -82,16 +97,14 @@ export default function ManajemenPaketSoal() {
       )}
 
       <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-4 md:p-6">
-        <div className="mb-6">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Cari paket soal..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2 pl-10 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-black"
-            />
-          </div>
+        <div className="mb-6 relative">
+          <input
+            type="text"
+            placeholder="Cari paket soal..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full px-4 py-2 pl-10 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-black"
+          />
         </div>
 
         {isLoading ? (
@@ -107,30 +120,41 @@ export default function ManajemenPaketSoal() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredPackages.map((paket) => (
-              <Link
+              <div
                 key={paket.package_id}
-                href={`/dashboard/manajemen-paket-soal/${paket.package_id}`}
-                className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer block"
+                className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer block relative"
               >
-                <h3 className="font-medium mb-3">{paket.package_name}</h3>
-                <div className="flex flex-wrap gap-1 mb-3">
-                  {paket.tags.length > 0 ? (
-                    paket.tags.map((tag) => (
-                      <span
-                        key={`${paket.package_id}-${tag.tag_id}`}
-                        className="bg-gray-100 text-xs px-2 py-0.5 rounded-md"
-                      >
-                        {tag.tag_name}
+                <Link
+                  href={`/dashboard/manajemen-paket-soal/${paket.package_id}`}
+                >
+                  <h3 className="font-medium mb-3">{paket.package_name}</h3>
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {paket.tags.length > 0 ? (
+                      paket.tags.map((tag) => (
+                        <span
+                          key={`${paket.package_id}-${tag.tag_id}`}
+                          className="bg-gray-100 text-xs px-2 py-0.5 rounded-md"
+                        >
+                          {tag.tag_name}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-gray-400 text-xs">
+                        Tidak ada tag
                       </span>
-                    ))
-                  ) : (
-                    <span className="text-gray-400 text-xs">Tidak ada tag</span>
-                  )}
-                </div>
-                <div className="flex justify-between items-center text-sm text-gray-500">
-                  <span>{paket.questions.length} soal</span>
-                </div>
-              </Link>
+                    )}
+                  </div>
+                  <div className="flex justify-between items-center text-sm text-gray-500">
+                    <span>{paket.questions.length} soal</span>
+                  </div>
+                </Link>
+                <button
+                  onClick={() => deletePackage(paket.package_id)}
+                  className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-md hover:bg-red-600 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             ))}
           </div>
         )}
