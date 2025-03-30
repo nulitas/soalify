@@ -1,3 +1,5 @@
+"use client";
+
 import { User, Mail, Lock } from "lucide-react";
 
 export default function Pengaturan() {

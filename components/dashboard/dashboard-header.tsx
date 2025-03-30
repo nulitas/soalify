@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   User,
   BookOpen,
@@ -37,31 +38,40 @@ export default function DashboardHeader({
   activeTab,
   setActiveTab,
 }: DashboardHeaderProps) {
+  const pathname = usePathname();
+
+  const isInPaketSoal = pathname.includes("/manajemen-paket-soal");
+
   const menuItems = [
     {
       name: "Membuat Soal",
       icon: BookOpen,
       tab: "membuat-soal" as const,
+      path: "/dashboard",
     },
     {
       name: "Manajemen Paket Soal",
       icon: Package,
       tab: "manajemen-paket-soal" as const,
+      path: "/dashboard/manajemen-paket-soal",
     },
     {
       name: "Manajemen Tag",
       icon: Tag,
       tab: "manajemen-tag" as const,
+      path: "/dashboard/manajemen-tag",
     },
     {
       name: "Manajemen Dokumen",
       icon: FileText,
       tab: "manajemen-dokumen" as const,
+      path: "/dashboard/manajemen-dokumen",
     },
     {
       name: "Pengaturan",
       icon: Settings,
       tab: "pengaturan" as const,
+      path: "/dashboard/pengaturan",
     },
   ];
 
@@ -73,8 +83,6 @@ export default function DashboardHeader({
           <Link href="/dashboard" className="text-xl font-medium title-font">
             Soalify
           </Link>
-
-          {/* Desktop Search */}
 
           {/* User Profile */}
           <div className="flex items-center gap-4">
@@ -118,18 +126,28 @@ export default function DashboardHeader({
         {isMobileMenuOpen && (
           <div className="md:hidden bg-white px-4 py-4 shadow-md">
             <div className="flex flex-col space-y-4">
-              {menuItems.map((item) => (
-                <button
-                  key={item.tab}
-                  onClick={() => setActiveTab(item.tab)}
-                  className={`flex items-center gap-3 py-2 text-left ${
-                    activeTab === item.tab ? "font-medium" : ""
-                  }`}
-                >
-                  <item.icon className="w-5 h-5" />
-                  <span className="nav-text">{item.name}</span>
-                </button>
-              ))}
+              {menuItems.map((item) => {
+                const isActive =
+                  item.tab === activeTab ||
+                  (item.tab === "manajemen-paket-soal" && isInPaketSoal);
+
+                return (
+                  <Link
+                    key={item.tab}
+                    href={item.path}
+                    onClick={() => {
+                      setActiveTab(item.tab);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`flex items-center gap-3 py-2 text-left ${
+                      isActive ? "font-medium" : ""
+                    }`}
+                  >
+                    <item.icon className="w-5 h-5" />
+                    <span className="nav-text">{item.name}</span>
+                  </Link>
+                );
+              })}
               <div className="h-px bg-gray-200 my-2"></div>
               <Link
                 href="/"
