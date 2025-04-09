@@ -1,18 +1,21 @@
 "use client";
 
 import type React from "react";
-
 import { useState } from "react";
+import axios from "axios";
 import Link from "next/link";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     confirmPassword: "",
     name: "",
+    role_id: 1, // Default role_id as per your API requirements
   });
   const [errors, setErrors] = useState({
     email: "",
@@ -20,6 +23,7 @@ export default function RegisterPage() {
     confirmPassword: "",
     name: "",
   });
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -32,7 +36,12 @@ export default function RegisterPage() {
 
   const validateForm = () => {
     let isValid = true;
-    const newErrors = { ...errors };
+    const newErrors = {
+      email: "",
+      password: "",
+      confirmPassword: "",
+      name: "",
+    };
 
     if (!formData.name) {
       newErrors.name = "Nama lengkap dibutuhkan";
@@ -67,13 +76,43 @@ export default function RegisterPage() {
     return isValid;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (validateForm()) {
-      console.log("Registration form submitted:", formData);
+    if (!validateForm()) return;
 
+    setLoading(true);
+    try {
+      // Prepare the request body according to your API requirements
+      const requestBody = {
+        email: formData.email,
+        password: formData.password,
+        role_id: formData.role_id,
+      };
+
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/users/register`,
+        requestBody
+      );
+
+      console.log("Registration successful:", response.data);
       alert("Registration successful!");
+      router.push("/auth/login"); // Redirect to login page after successful registration
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error(
+          "Registration error details:",
+          error.response?.data || error.message
+        );
+        setErrors((prev) => ({
+          ...prev,
+          email: "Registration failed. Please try again.",
+        }));
+      } else {
+        console.error("Unexpected error:", error);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -193,9 +232,10 @@ export default function RegisterPage() {
 
               <button
                 type="submit"
+                disabled={loading}
                 className="w-full px-6 py-3 bg-black text-white rounded-full hover:bg-gray-800 transition-colors duration-200 ease-in-out text-sm button-font"
               >
-                Daftar
+                {loading ? "Memproses..." : "Daftar"}
               </button>
             </form>
 
