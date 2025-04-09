@@ -67,6 +67,13 @@ export default function LoginPage() {
       );
 
       console.log("Login successful:", response.data);
+
+      localStorage.setItem("token", response.data.access_token);
+
+      if (response.data.user) {
+        localStorage.setItem("user", JSON.stringify(response.data.user));
+      }
+
       alert("Login successful!");
       router.push("/dashboard");
     } catch (error) {

@@ -15,7 +15,7 @@ export default function RegisterPage() {
     password: "",
     confirmPassword: "",
     name: "",
-    role_id: 1, // Default role_id as per your API requirements
+    role_id: 1,
   });
   const [errors, setErrors] = useState({
     email: "",
@@ -83,7 +83,6 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      // Prepare the request body according to your API requirements
       const requestBody = {
         email: formData.email,
         password: formData.password,
@@ -97,7 +96,7 @@ export default function RegisterPage() {
 
       console.log("Registration successful:", response.data);
       alert("Registration successful!");
-      router.push("/auth/login"); // Redirect to login page after successful registration
+      router.push("/auth/login");
     } catch (error) {
       if (axios.isAxiosError(error)) {
         console.error(
