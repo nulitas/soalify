@@ -10,28 +10,51 @@ export default function ManajemenTag() {
   const [newTag, setNewTag] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<number | null>(null);
 
   useEffect(() => {
-    fetchTags();
-  }, []);
-
-  const fetchTags = async () => {
-    setLoading(true);
-    try {
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/tags/`
-      );
-      setTags(response.data);
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.detail || "Gagal mengambil tag");
-      } else {
-        setError("Terjadi kesalahan yang tidak diketahui.");
+    const fetchUserIdAndTags = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("Anda belum login.");
+        setLoading(false);
+        return;
       }
-    } finally {
-      setLoading(false);
-    }
-  };
+
+      try {
+        const userRes = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/users/me`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const id = userRes.data.user_id;
+        setUserId(id);
+
+        const tagsRes = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/tags/`,
+          {
+            params: { user_id: id, skip: 0, limit: 100 },
+          }
+        );
+
+        setTags(tagsRes.data);
+      } catch (err) {
+        if (axios.isAxiosError(err)) {
+          setError(err.response?.data?.detail || "Gagal mengambil data.");
+        } else {
+          setError("Terjadi kesalahan tidak dikenal.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserIdAndTags();
+  }, []);
 
   const handleAddTag = async () => {
     if (!newTag.trim()) return;
@@ -41,6 +64,7 @@ export default function ManajemenTag() {
         `${process.env.NEXT_PUBLIC_API_URL}/tags/`,
         {
           tag_name: newTag,
+          user_id: userId,
         }
       );
 

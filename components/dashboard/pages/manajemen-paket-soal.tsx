@@ -32,32 +32,50 @@ export default function ManajemenPaketSoal() {
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
   const [availableTags, setAvailableTags] = useState<Tag[]>([]);
   const [isLoadingTags, setIsLoadingTags] = useState(true);
+  const [, setUserId] = useState<number | null>(null);
 
   useEffect(() => {
-    fetchPackages();
-    fetchAllTags();
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          setError("Anda belum login.");
+          setIsLoading(false);
+          return;
+        }
+
+        const userRes = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/users/me`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const userId = userRes.data.user_id;
+        setUserId(userId);
+
+        await Promise.all([fetchPackages(userId), fetchAllTags(userId)]);
+      } catch (err) {
+        console.error("Gagal mengambil user:", err);
+        setError("Gagal mengambil data pengguna.");
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
-  const fetchAllTags = async () => {
-    try {
-      setIsLoadingTags(true);
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/tags/`
-      );
-      setAvailableTags(response.data);
-    } catch (err) {
-      console.error("Failed to fetch tags:", err);
-    } finally {
-      setIsLoadingTags(false);
-    }
-  };
-
-  const fetchPackages = async () => {
+  const fetchPackages = async (userId: number) => {
     try {
       setIsLoading(true);
       setError(null);
       const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/packages/`
+        `${process.env.NEXT_PUBLIC_API_URL}/packages/`,
+        {
+          params: { user_id: userId },
+        }
       );
       const formattedData = response.data.map(
         (pkg: {
@@ -78,6 +96,23 @@ export default function ManajemenPaketSoal() {
       setError("Gagal memuat data paket soal. Silakan coba lagi.");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchAllTags = async (userId: number) => {
+    try {
+      setIsLoadingTags(true);
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/tags/`,
+        {
+          params: { user_id: userId },
+        }
+      );
+      setAvailableTags(response.data);
+    } catch (err) {
+      console.error("Failed to fetch tags:", err);
+    } finally {
+      setIsLoadingTags(false);
     }
   };
 
@@ -157,7 +192,6 @@ export default function ManajemenPaketSoal() {
             />
           </div>
 
-          {/* Tag filtering section */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Filter berdasarkan tag:
@@ -189,7 +223,6 @@ export default function ManajemenPaketSoal() {
               )}
             </div>
 
-            {/* Display selected tags with remove option */}
             {selectedTags.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-2">
                 {selectedTags.map((tagId) => (
@@ -206,15 +239,12 @@ export default function ManajemenPaketSoal() {
                     </button>
                   </div>
                 ))}
-
-                {selectedTags.length > 0 && (
-                  <button
-                    className="text-sm text-blue-600 hover:text-blue-800"
-                    onClick={() => setSelectedTags([])}
-                  >
-                    Hapus semua filter
-                  </button>
-                )}
+                <button
+                  className="text-sm text-blue-600 hover:text-blue-800"
+                  onClick={() => setSelectedTags([])}
+                >
+                  Hapus semua filter
+                </button>
               </div>
             )}
           </div>
