@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  User,
   BookOpen,
   Package,
   Tag,
@@ -77,25 +76,9 @@ export default function DashboardHeader({
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-30 bg-white border-b border-gray-200 py-4 px-4 md:px-6 md:ml-64">
+      <header className="md:static md:border-none md:py-0 fixed top-0 left-0 right-0 z-30 bg-white border-b border-gray-200 py-4 px-4 md:px-6 md:ml-64">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          {/* Logo */}
-          <Link href="/dashboard" className="text-xl font-medium title-font">
-            Soalify
-          </Link>
-
-          {/* User Profile */}
           <div className="flex items-center gap-4">
-            <div className="hidden md:flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center">
-                <User className="w-5 h-5 text-gray-500" />
-              </div>
-              <div>
-                <p className="text-sm font-medium title-font">Andra</p>
-                <p className="text-xs text-gray-500">Pengguna</p>
-              </div>
-            </div>
-
             {/* Mobile menu button */}
             <button
               className="md:hidden"

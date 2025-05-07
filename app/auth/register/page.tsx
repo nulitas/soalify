@@ -14,14 +14,14 @@ export default function RegisterPage() {
     email: "",
     password: "",
     confirmPassword: "",
-    name: "",
+    fullname: "",
     role_id: 1,
   });
   const [errors, setErrors] = useState({
     email: "",
     password: "",
     confirmPassword: "",
-    name: "",
+    fullname: "",
   });
   const [loading, setLoading] = useState(false);
 
@@ -40,11 +40,11 @@ export default function RegisterPage() {
       email: "",
       password: "",
       confirmPassword: "",
-      name: "",
+      fullname: "",
     };
 
-    if (!formData.name) {
-      newErrors.name = "Nama lengkap dibutuhkan";
+    if (!formData.fullname) {
+      newErrors.fullname = "Nama lengkap dibutuhkan";
       isValid = false;
     }
 
@@ -86,6 +86,7 @@ export default function RegisterPage() {
       const requestBody = {
         email: formData.email,
         password: formData.password,
+        fullname: formData.fullname,
         role_id: formData.role_id,
       };
 
@@ -145,15 +146,15 @@ export default function RegisterPage() {
                 </label>
                 <input
                   type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
+                  id="fullname"
+                  name="fullname"
+                  value={formData.fullname}
                   onChange={handleChange}
                   className="w-full px-4 py-3 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-black"
                   placeholder="Masukkan nama lengkap Anda"
                 />
-                {errors.name && (
-                  <p className="text-red-500 text-xs mt-1">{errors.name}</p>
+                {errors.fullname && (
+                  <p className="text-red-500 text-xs mt-1">{errors.fullname}</p>
                 )}
               </div>
 

@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 
 interface UserData {
   user_id: number;
+  fullname: string;
   email: string;
   role_id: number;
 }
@@ -109,9 +110,7 @@ export default function Pengaturan() {
                   <User className="w-10 h-10 text-gray-500" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">
-                    User ID: {userData?.user_id}
-                  </p>
+                  <p className="text-sm text-gray-500">{userData?.fullname}</p>
                 </div>
               </div>
 
