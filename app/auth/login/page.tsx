@@ -1,5 +1,6 @@
 "use client";
 
+import api from "@/lib/api";
 import type React from "react";
 import { useState } from "react";
 import axios from "axios";
@@ -56,25 +57,22 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      const requestBody = new URLSearchParams();
-      requestBody.append("username", formData.email);
-      requestBody.append("password", formData.password);
-
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/users/login`,
-        requestBody,
+        new URLSearchParams({
+          username: formData.email,
+          password: formData.password,
+        }),
         { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
       );
 
-      console.log("Login successful:", response.data);
-
       localStorage.setItem("token", response.data.access_token);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
 
-      if (response.data.user) {
-        localStorage.setItem("user", JSON.stringify(response.data.user));
-      }
+      api.defaults.headers.common[
+        "Authorization"
+      ] = `Bearer ${response.data.access_token}`;
 
-      alert("Login successful!");
       router.push("/dashboard");
     } catch (error) {
       if (axios.isAxiosError(error)) {

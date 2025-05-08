@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "@/lib/api";
+import { useRouter } from "next/navigation";
 
 export default function ManajemenTag() {
   const [tags, setTags] = useState<
@@ -10,41 +11,25 @@ export default function ManajemenTag() {
   const [newTag, setNewTag] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-  const [userId, setUserId] = useState<number | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
-    const fetchUserIdAndTags = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setError("Anda belum login.");
-        setLoading(false);
-        return;
-      }
-
+    const fetchTags = async () => {
       try {
-        const userRes = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/users/me`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        const id = userRes.data.user_id;
-        setUserId(id);
-
-        const tagsRes = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/tags/`,
-          {
-            params: { user_id: id, skip: 0, limit: 100 },
-          }
-        );
-
-        setTags(tagsRes.data);
+        const response = await api.get("/tags");
+        setTags(response.data);
       } catch (err) {
-        if (axios.isAxiosError(err)) {
-          setError(err.response?.data?.detail || "Gagal mengambil data.");
+        if (err && typeof err === "object" && "response" in err) {
+          const axiosError = err as {
+            response?: { data?: { detail?: string }; status?: number };
+          };
+          setError(
+            axiosError.response?.data?.detail || "Gagal mengambil data."
+          );
+
+          if (axiosError.response?.status === 401) {
+            router.push("/auth/login");
+          }
         } else {
           setError("Terjadi kesalahan tidak dikenal.");
         }
@@ -53,41 +38,35 @@ export default function ManajemenTag() {
       }
     };
 
-    fetchUserIdAndTags();
-  }, []);
+    fetchTags();
+  }, [router]);
 
   const handleAddTag = async () => {
     if (!newTag.trim()) return;
 
     try {
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/tags/`,
-        {
-          tag_name: newTag,
-          user_id: userId,
-        }
-      );
-
+      const response = await api.post("/tags", { tag_name: newTag });
       setTags((prev) => [...prev, response.data]);
       setNewTag("");
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.detail || "Gagal menambahkan tag");
+    } catch (err) {
+      if (err && typeof err === "object" && "response" in err) {
+        const axiosError = err as { response?: { data?: { detail?: string } } };
+        setError(axiosError.response?.data?.detail || "Gagal menambahkan tag");
       }
     }
   };
 
   const handleDeleteTag = async (tagId: number) => {
     try {
-      await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/tags/${tagId}`);
+      await api.delete(`/tags/${tagId}`);
       setTags((prev) => prev.filter((tag) => tag.tag_id !== tagId));
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.detail || "Gagal menghapus tag");
+    } catch (err) {
+      if (err && typeof err === "object" && "response" in err) {
+        const axiosError = err as { response?: { data?: { detail?: string } } };
+        setError(axiosError.response?.data?.detail || "Gagal menghapus tag");
       }
     }
   };
-
   return (
     <div>
       <h1 className="text-2xl md:text-3xl font-medium title-font mb-6">

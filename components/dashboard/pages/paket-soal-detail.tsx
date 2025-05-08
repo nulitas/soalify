@@ -6,6 +6,8 @@ import { ArrowLeft, Edit, Save, Plus, Trash } from "lucide-react";
 import Link from "next/link";
 import QuestionGenerator from "@/components/dashboard/question-generator";
 import GeneratedQuestions from "@/components/dashboard/generated-questions";
+import api from "@/lib/api";
+import { useRouter } from "next/navigation";
 
 interface Tag {
   tag_id: number;
@@ -31,6 +33,7 @@ interface PaketSoalDetailProps {
 }
 
 export default function PaketSoalDetail({ paketId }: PaketSoalDetailProps) {
+  const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [editedPackage, setEditedPackage] = useState<PaketSoal | null>(null);
   const [viewingPackage, setViewingPackage] = useState<PaketSoal | null>(null);
@@ -44,39 +47,51 @@ export default function PaketSoalDetail({ paketId }: PaketSoalDetailProps) {
   } | null>(null);
 
   useEffect(() => {
-    async function fetchPackage() {
+    const fetchData = async () => {
       try {
         setLoading(true);
         setError(null);
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/packages/${paketId}`
-        );
-        setViewingPackage(response.data);
-        setEditedPackage(response.data);
+
+        const [packageRes, tagsRes] = await Promise.all([
+          api.get(`/packages/${paketId}`),
+          api.get("/tags"),
+        ]);
+
+        if (!packageRes.data.user_id) {
+          router.push("/dashboard/manajemen-paket-soal");
+          return;
+        }
+
+        setViewingPackage(packageRes.data);
+        setEditedPackage(packageRes.data);
+        setAvailableTags(tagsRes.data);
       } catch (err) {
-        console.error("Failed to fetch package:", err);
-        setError("Gagal memuat paket soal");
+        handleApiError(err);
       } finally {
         setLoading(false);
       }
-    }
+    };
 
-    async function fetchTags() {
-      try {
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/tags/`
-        );
-        setAvailableTags(response.data);
-      } catch (err) {
-        console.error("Failed to fetch tags:", err);
-      }
-    }
+    if (paketId) fetchData();
+  }, [paketId, router]);
 
-    if (paketId) {
-      fetchPackage();
-      fetchTags();
+  const handleApiError = (error: unknown) => {
+    const isAxiosError = (
+      err: unknown
+    ): err is {
+      response?: { data?: { detail?: string }; status?: number };
+    } => {
+      return (err as { isAxiosError?: boolean }).isAxiosError === true;
+    };
+
+    if (isAxiosError(error)) {
+      setError(error.response?.data?.detail || "Terjadi kesalahan pada server");
+    } else if (error instanceof Error) {
+      setError(error.message);
+    } else {
+      setError("Terjadi kesalahan tidak dikenal");
     }
-  }, [paketId]);
+  };
 
   const handleEdit = () => setIsEditing(true);
 
@@ -194,27 +209,24 @@ export default function PaketSoalDetail({ paketId }: PaketSoalDetailProps) {
 
     try {
       const payload = {
-        id: editedPackage.package_id,
         package_name: editedPackage.package_name,
-        user_id: editedPackage.user_id,
         tag_ids: editedPackage.tags.map((tag) => tag.tag_id),
         questions: editedPackage.questions,
       };
 
-      const response = await axios.put(
-        `${process.env.NEXT_PUBLIC_API_URL}/packages/${paketId}`,
-        payload
-      );
+      const { data } = await api.put(`/packages/${paketId}`, payload);
 
-      setViewingPackage(response.data);
-      setEditedPackage(response.data);
+      setViewingPackage(data);
+      setEditedPackage(data);
       setIsEditing(false);
       alert("Perubahan berhasil disimpan!");
     } catch (err) {
-      console.error("Failed to save changes:", err);
-      alert("Gagal menyimpan perubahan. Silakan coba lagi.");
+      handleApiError(err);
+      alert("Gagal menyimpan perubahan");
     }
   };
+
+  const [saving] = useState(false);
 
   if (loading) {
     return <div className="text-center py-12">Memuat Paket Soal...</div>;
@@ -392,9 +404,38 @@ export default function PaketSoalDetail({ paketId }: PaketSoalDetailProps) {
               </button>
               <button
                 onClick={saveChanges}
-                className="px-4 py-2 bg-black text-white rounded-md flex items-center gap-2"
+                disabled={saving}
+                className="px-4 py-2 bg-black text-white rounded-md flex items-center gap-2 disabled:opacity-50"
               >
-                <Save className="w-4 h-4" /> Simpan
+                {saving ? (
+                  <div className="flex items-center">
+                    <svg
+                      className="animate-spin h-4 w-4 mr-2 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Menyimpan...
+                  </div>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" /> Simpan
+                  </>
+                )}
               </button>
             </div>
           </div>

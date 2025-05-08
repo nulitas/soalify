@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Plus, Loader2, Trash2, X } from "lucide-react";
 import Link from "next/link";
 import axios from "axios";
-
+import api from "@/lib/api";
 interface PaketSoal {
   package_id: number;
   package_name: string;
@@ -33,6 +33,65 @@ export default function ManajemenPaketSoal() {
   const [availableTags, setAvailableTags] = useState<Tag[]>([]);
   const [isLoadingTags, setIsLoadingTags] = useState(true);
   const [, setUserId] = useState<number | null>(null);
+
+  const fetchPackages = async (userId: number) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await api.get("/packages/", {
+        params: { user_id: userId },
+      });
+
+      if (!Array.isArray(response.data)) {
+        throw new Error("Invalid API response format");
+      }
+
+      const formattedData = response.data.map(
+        (pkg: {
+          id: number;
+          package_name: string;
+          tags?: { tag_id: number; tag_name: string }[];
+          questions?: { question: string; answer: string }[];
+        }) => ({
+          package_id: pkg.id,
+          package_name: pkg.package_name,
+          tags: pkg.tags || [],
+          questions: pkg.questions || [],
+        })
+      );
+      setPaketSoalList(formattedData);
+    } catch (err) {
+      console.error("Failed to fetch packages:", err);
+      setError("Gagal memuat data paket soal. Silakan coba lagi.");
+
+      if (axios.isAxiosError(err)) {
+        console.log("API Error:", err.response?.data);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  const fetchAllTags = async (userId: number) => {
+    try {
+      setIsLoadingTags(true);
+      const response = await api.get("/tags/", {
+        params: { user_id: userId },
+      });
+
+      const mappedTags = response.data.map(
+        (tag: { tag_id: number; tag_name: string; user_id?: number }) => ({
+          tag_id: tag.tag_id,
+          tag_name: tag.tag_name,
+          user_id: tag.user_id,
+        })
+      );
+      setAvailableTags(mappedTags);
+    } catch (err) {
+      console.error("Failed to fetch tags:", err);
+    } finally {
+      setIsLoadingTags(false);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -67,61 +126,9 @@ export default function ManajemenPaketSoal() {
     fetchData();
   }, []);
 
-  const fetchPackages = async (userId: number) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/packages/`,
-        {
-          params: { user_id: userId },
-        }
-      );
-      const formattedData = response.data.map(
-        (pkg: {
-          id: number;
-          package_name: string;
-          tags?: { tag_id: number; tag_name: string }[];
-          questions?: { question: string; answer: string }[];
-        }) => ({
-          package_id: pkg.id,
-          package_name: pkg.package_name,
-          tags: pkg.tags || [],
-          questions: pkg.questions || [],
-        })
-      );
-      setPaketSoalList(formattedData);
-    } catch (err) {
-      console.error("Failed to fetch packages:", err);
-      setError("Gagal memuat data paket soal. Silakan coba lagi.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchAllTags = async (userId: number) => {
-    try {
-      setIsLoadingTags(true);
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/tags/`,
-        {
-          params: { user_id: userId },
-        }
-      );
-      setAvailableTags(response.data);
-    } catch (err) {
-      console.error("Failed to fetch tags:", err);
-    } finally {
-      setIsLoadingTags(false);
-    }
-  };
-
   const deletePackage = async (packageId: number) => {
-    if (!confirm("Apakah Anda yakin ingin menghapus paket ini?")) return;
     try {
-      await axios.delete(
-        `${process.env.NEXT_PUBLIC_API_URL}/packages/${packageId}`
-      );
+      await api.delete(`/packages/${packageId}`);
       setPaketSoalList((prev) =>
         prev.filter((pkg) => pkg.package_id !== packageId)
       );
@@ -147,7 +154,6 @@ export default function ManajemenPaketSoal() {
     const tag = availableTags.find((t) => t.tag_id === tagId);
     return tag ? tag.tag_name : "";
   };
-
   const filteredPackages = paketSoalList.filter((pkg) => {
     const matchesSearch = pkg.package_name
       .toLowerCase()

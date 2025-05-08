@@ -2,32 +2,33 @@
 
 import { useState, useEffect } from "react";
 import { Save, ArrowLeft } from "lucide-react";
-import axios from "axios";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import api from "@/lib/api";
+import axios from "axios";
 
 interface Tag {
   tag_id: number;
   tag_name: string;
 }
-
 export default function TambahPaketSoal() {
+  const router = useRouter();
   const [packageName, setPackageName] = useState("");
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
   const [availableTags, setAvailableTags] = useState<Tag[]>([]);
-
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    async function fetchTags() {
+    const fetchTags = async () => {
       try {
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/tags/`
-        );
+        const response = await api.get("/tags/");
         setAvailableTags(response.data);
       } catch (err) {
         console.error("Failed to fetch tags:", err);
+        setError("Gagal memuat tag. Silakan coba lagi.");
       }
-    }
+    };
     fetchTags();
   }, []);
 
@@ -40,23 +41,33 @@ export default function TambahPaketSoal() {
   };
 
   const savePackage = async () => {
+    if (!packageName.trim()) {
+      setError("Nama paket harus diisi");
+      return;
+    }
+
     try {
       setLoading(true);
+      setError("");
+
       const newPackage = {
         package_name: packageName,
         tag_ids: selectedTags,
       };
 
-      await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/packages/`,
-        newPackage
-      );
-
-      alert("Paket soal berhasil ditambahkan!");
-      window.location.href = "/dashboard/manajemen-paket-soal";
+      await api.post("/packages/", newPackage);
+      router.push("/dashboard/manajemen-paket-soal");
     } catch (err) {
       console.error("Failed to create package:", err);
-      alert("Gagal menambahkan paket soal. Silakan coba lagi.");
+      setError("Gagal menambahkan paket soal. Silakan coba lagi.");
+
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) {
+          router.push("/auth/login");
+        }
+      } else if (err instanceof Error) {
+        console.log("Generic error:", err.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -73,6 +84,12 @@ export default function TambahPaketSoal() {
         </Link>
         <h1 className="text-2xl md:text-3xl font-medium">Tambah Paket Soal</h1>
       </div>
+
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          {error}
+        </div>
+      )}
 
       <div className="bg-white rounded-lg border shadow-sm p-6">
         <div className="mb-4">
