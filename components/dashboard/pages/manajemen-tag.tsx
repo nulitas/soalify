@@ -11,6 +11,10 @@ export default function ManajemenTag() {
   const [newTag, setNewTag] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [editingTag, setEditingTag] = useState<{
+    id: number | null;
+    name: string;
+  }>({ id: null, name: "" });
   const router = useRouter();
 
   useEffect(() => {
@@ -67,6 +71,40 @@ export default function ManajemenTag() {
       }
     }
   };
+
+  const handleStartEdit = (tagId: number, tagName: string) => {
+    setEditingTag({ id: tagId, name: tagName });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingTag({ id: null, name: "" });
+  };
+
+  const handleUpdateTag = async () => {
+    if (!editingTag.id || !editingTag.name.trim()) return;
+
+    try {
+      const response = await api.put(`/tags/${editingTag.id}`, {
+        tag_name: editingTag.name,
+      });
+
+      setTags((prev) =>
+        prev.map((tag) =>
+          tag.tag_id === editingTag.id
+            ? { ...tag, tag_name: response.data.tag_name }
+            : tag
+        )
+      );
+      setEditingTag({ id: null, name: "" });
+      setError("");
+    } catch (err) {
+      if (err && typeof err === "object" && "response" in err) {
+        const axiosError = err as { response?: { data?: { detail?: string } } };
+        setError(axiosError.response?.data?.detail || "Gagal menghapus tag");
+      }
+    }
+  };
+
   return (
     <div>
       <h1 className="text-2xl md:text-3xl font-medium title-font mb-6">
@@ -92,13 +130,52 @@ export default function ManajemenTag() {
                   key={tag.tag_id}
                   className="bg-gray-100 px-3 py-1 rounded-full text-sm flex items-center"
                 >
-                  {tag.tag_name}
-                  <button
-                    onClick={() => handleDeleteTag(tag.tag_id)}
-                    className="ml-2 text-gray-500 hover:text-red-500"
-                  >
-                    ×
-                  </button>
+                  {editingTag.id === tag.tag_id ? (
+                    <>
+                      <input
+                        type="text"
+                        value={editingTag.name}
+                        onChange={(e) =>
+                          setEditingTag({ ...editingTag, name: e.target.value })
+                        }
+                        className="bg-transparent outline-none w-24"
+                      />
+                      <div className="flex gap-1 ml-2">
+                        <button
+                          onClick={handleUpdateTag}
+                          className="text-green-500 hover:text-green-700"
+                        >
+                          ✓
+                        </button>
+                        <button
+                          onClick={handleCancelEdit}
+                          className="text-gray-500 hover:text-gray-700"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {tag.tag_name}
+                      <div className="flex gap-1 ml-2">
+                        <button
+                          onClick={() =>
+                            handleStartEdit(tag.tag_id, tag.tag_name)
+                          }
+                          className="text-gray-500 hover:text-blue-500"
+                        >
+                          ✎
+                        </button>
+                        <button
+                          onClick={() => handleDeleteTag(tag.tag_id)}
+                          className="text-gray-500 hover:text-red-500"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               ))}
             </div>
