@@ -54,7 +54,11 @@ export default function MembuatSoal() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         <div className="lg:col-span-2">
-          <QuestionGenerator onGenerate={handleGenerateQuestions} />
+          <QuestionGenerator
+            onGenerate={handleGenerateQuestions}
+            allowCustomQuestionCount={false}
+            defaultQuestionCount={1}
+          />
 
           {generatedContent && (
             <div className="mt-4 md:mt-6">

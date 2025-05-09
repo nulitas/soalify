@@ -11,13 +11,17 @@ interface QuestionGeneratorProps {
     num_questions: number;
     use_rag: boolean;
   }) => void;
+  allowCustomQuestionCount?: boolean;
+  defaultQuestionCount?: number;
 }
 
 export default function QuestionGenerator({
   onGenerate,
+  allowCustomQuestionCount = true,
+  defaultQuestionCount = 1,
 }: QuestionGeneratorProps) {
   const [queryText, setQueryText] = useState("");
-  const [numQuestions, setNumQuestions] = useState(2);
+  const [numQuestions, setNumQuestions] = useState(defaultQuestionCount);
   const [useRag, setUseRag] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -34,7 +38,9 @@ export default function QuestionGenerator({
     try {
       await onGenerate({
         query_text: queryText,
-        num_questions: numQuestions,
+        num_questions: allowCustomQuestionCount
+          ? numQuestions
+          : defaultQuestionCount,
         use_rag: useRag,
       });
     } finally {
@@ -69,25 +75,36 @@ export default function QuestionGenerator({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-          <div className="space-y-2">
-            <label htmlFor="numQuestions" className="block text-sm button-font">
-              Jumlah Pertanyaan
-            </label>
-            <input
-              type="number"
-              id="numQuestions"
-              value={numQuestions}
-              onChange={(e) =>
-                setNumQuestions(
-                  Math.max(1, Math.min(5, Number.parseInt(e.target.value) || 1))
-                )
-              }
-              min="1"
-              max="10"
-              className="w-full px-4 py-3 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-black"
-            />
-            <p className="text-xs text-gray-500">Pilih antara 1-5 pertanyaan</p>
-          </div>
+          {allowCustomQuestionCount && (
+            <div className="space-y-2">
+              <label
+                htmlFor="numQuestions"
+                className="block text-sm button-font"
+              >
+                Jumlah Pertanyaan
+              </label>
+              <input
+                type="number"
+                id="numQuestions"
+                value={numQuestions}
+                onChange={(e) =>
+                  setNumQuestions(
+                    Math.max(
+                      1,
+                      Math.min(5, Number.parseInt(e.target.value) || 1)
+                    )
+                  )
+                }
+                min="1"
+                max="5"
+                className="w-full px-4 py-3 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-black"
+                aria-label="Select number of questions between 1 and 5"
+              />
+              <p className="text-xs text-gray-500">
+                Pilih antara 1-5 pertanyaan
+              </p>
+            </div>
+          )}
 
           <div className="space-y-2">
             <label className="block text-sm button-font mb-2">
