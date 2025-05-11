@@ -1,13 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import { ArrowLeft, Edit, Save, Plus, Trash } from "lucide-react";
+import {
+  ArrowLeft,
+  Edit,
+  Save,
+  Plus,
+  Trash,
+  AlertTriangle,
+} from "lucide-react";
 import Link from "next/link";
 import QuestionGenerator from "@/components/dashboard/question-generator";
 import GeneratedQuestions from "@/components/dashboard/generated-questions";
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";
+import toast, { Toaster } from "react-hot-toast";
+import ConfirmModal from "@/components/ui/confirm-modal";
 
 interface Tag {
   tag_id: number;
@@ -45,6 +54,48 @@ export default function PaketSoalDetail({ paketId }: PaketSoalDetailProps) {
     result: { questions: Question[] };
     method: string;
   } | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [questionToDelete, setQuestionToDelete] = useState<{
+    index: number;
+    question: string;
+  } | null>(null);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+
+  const handleApiError = useCallback(
+    (error: unknown) => {
+      const isAxiosError = (
+        err: unknown
+      ): err is {
+        response?: { data?: { detail?: string }; status?: number };
+      } => {
+        return (err as { isAxiosError?: boolean }).isAxiosError === true;
+      };
+
+      if (isAxiosError(error)) {
+        const errorMessage =
+          error.response?.data?.detail || "Terjadi kesalahan pada server";
+        setError(errorMessage);
+        toast.error(errorMessage);
+
+        if (error.response?.status === 401) {
+          toast.error("Sesi Anda telah berakhir. Silakan login kembali.");
+          setTimeout(() => {
+            router.push("/auth/login");
+          }, 2000);
+        }
+      } else if (error instanceof Error) {
+        setError(error.message);
+        toast.error(error.message);
+      } else {
+        const errorMessage = "Terjadi kesalahan tidak dikenal";
+        setError(errorMessage);
+        toast.error(errorMessage);
+      }
+    },
+    [router]
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -58,6 +109,7 @@ export default function PaketSoalDetail({ paketId }: PaketSoalDetailProps) {
         ]);
 
         if (!packageRes.data.user_id) {
+          toast.error("Paket soal tidak ditemukan");
           router.push("/dashboard/manajemen-paket-soal");
           return;
         }
@@ -73,25 +125,7 @@ export default function PaketSoalDetail({ paketId }: PaketSoalDetailProps) {
     };
 
     if (paketId) fetchData();
-  }, [paketId, router]);
-
-  const handleApiError = (error: unknown) => {
-    const isAxiosError = (
-      err: unknown
-    ): err is {
-      response?: { data?: { detail?: string }; status?: number };
-    } => {
-      return (err as { isAxiosError?: boolean }).isAxiosError === true;
-    };
-
-    if (isAxiosError(error)) {
-      setError(error.response?.data?.detail || "Terjadi kesalahan pada server");
-    } else if (error instanceof Error) {
-      setError(error.message);
-    } else {
-      setError("Terjadi kesalahan tidak dikenal");
-    }
-  };
+  }, [paketId, router, handleApiError]);
 
   const handleEdit = () => setIsEditing(true);
 
@@ -149,17 +183,32 @@ export default function PaketSoalDetail({ paketId }: PaketSoalDetailProps) {
         questions: [...prev.questions, { question: "", answer: "" }],
       };
     });
+
+    toast.success("Soal baru ditambahkan");
   };
 
-  const handleDeleteQuestion = (index: number) => {
-    if (!editedPackage) return;
+  const confirmDeleteQuestion = (index: number, question: string) => {
+    setQuestionToDelete({ index, question });
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteQuestion = () => {
+    if (!editedPackage || questionToDelete === null) return;
+
+    const loadingToast = toast.loading("Menghapus soal...");
 
     setEditedPackage((prev) => {
       if (!prev) return null;
 
-      const updatedQuestions = prev.questions.filter((_, i) => i !== index);
+      const updatedQuestions = prev.questions.filter(
+        (_, i) => i !== questionToDelete.index
+      );
       return { ...prev, questions: updatedQuestions };
     });
+
+    toast.success("Soal berhasil dihapus", { id: loadingToast });
+    setShowDeleteModal(false);
+    setQuestionToDelete(null);
   };
 
   const handleGenerateQuestions = async (data: {
@@ -168,6 +217,8 @@ export default function PaketSoalDetail({ paketId }: PaketSoalDetailProps) {
     use_rag: boolean;
   }) => {
     try {
+      const loadingToast = toast.loading("Menghasilkan soal...");
+
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/questions/generate`,
         data,
@@ -182,14 +233,21 @@ export default function PaketSoalDetail({ paketId }: PaketSoalDetailProps) {
         result: response.data.result,
         method: response.data.method,
       });
+
+      toast.success(
+        `Berhasil menghasilkan ${response.data.result.questions.length} soal`,
+        { id: loadingToast }
+      );
     } catch (error) {
       console.error("Error generating questions:", error);
-      alert("Gagal menghasilkan pertanyaan. Silakan coba lagi.");
+      toast.error("Gagal menghasilkan pertanyaan. Silakan coba lagi.");
     }
   };
 
   const addGeneratedQuestions = () => {
     if (!editedPackage || !generatedContent) return;
+
+    const loadingToast = toast.loading("Menambahkan soal yang dihasilkan...");
 
     setEditedPackage((prev) => {
       if (!prev) return null;
@@ -202,12 +260,32 @@ export default function PaketSoalDetail({ paketId }: PaketSoalDetailProps) {
 
     setGeneratedContent(null);
     setShowQuestionGenerator(false);
+    toast.success("Soal berhasil ditambahkan", { id: loadingToast });
+  };
+
+  const confirmCancel = () => {
+    if (JSON.stringify(viewingPackage) !== JSON.stringify(editedPackage)) {
+      setShowCancelModal(true);
+    } else {
+      handleCancelEdit();
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setShowQuestionGenerator(false);
+    setGeneratedContent(null);
+    setEditedPackage(viewingPackage);
+    setShowCancelModal(false);
   };
 
   const saveChanges = async () => {
     if (!editedPackage) return;
 
     try {
+      setSaving(true);
+      const loadingToast = toast.loading("Menyimpan perubahan...");
+
       const payload = {
         package_name: editedPackage.package_name,
         tag_ids: editedPackage.tags.map((tag) => tag.tag_id),
@@ -219,14 +297,13 @@ export default function PaketSoalDetail({ paketId }: PaketSoalDetailProps) {
       setViewingPackage(data);
       setEditedPackage(data);
       setIsEditing(false);
-      alert("Perubahan berhasil disimpan!");
+      toast.success("Perubahan berhasil disimpan!", { id: loadingToast });
     } catch (err) {
       handleApiError(err);
-      alert("Gagal menyimpan perubahan");
+    } finally {
+      setSaving(false);
     }
   };
-
-  const [saving] = useState(false);
 
   if (loading) {
     return <div className="text-center py-12">Memuat Paket Soal...</div>;
@@ -250,6 +327,33 @@ export default function PaketSoalDetail({ paketId }: PaketSoalDetailProps) {
 
   return (
     <div>
+      {/* Toast container */}
+      <Toaster
+        toastOptions={{
+          success: {
+            style: {
+              background: "#10B981",
+              color: "white",
+              fontWeight: "500",
+            },
+          },
+          error: {
+            style: {
+              background: "#EF4444",
+              color: "white",
+              fontWeight: "500",
+            },
+          },
+          loading: {
+            style: {
+              background: "#3B82F6",
+              color: "white",
+              fontWeight: "500",
+            },
+          },
+        }}
+      />
+
       <div className="flex items-center mb-6">
         <Link
           href="/dashboard/manajemen-paket-soal"
@@ -352,7 +456,12 @@ export default function PaketSoalDetail({ paketId }: PaketSoalDetailProps) {
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="font-medium">Soal #{index + 1}</h3>
                       <button
-                        onClick={() => handleDeleteQuestion(index)}
+                        onClick={() =>
+                          confirmDeleteQuestion(
+                            index,
+                            question.question.substring(0, 30) + "..."
+                          )
+                        }
                         className="text-red-500 hover:text-red-700"
                       >
                         <Trash className="w-4 h-4" />
@@ -393,11 +502,7 @@ export default function PaketSoalDetail({ paketId }: PaketSoalDetailProps) {
 
             <div className="flex justify-end gap-3 mt-6">
               <button
-                onClick={() => {
-                  setIsEditing(false);
-                  setShowQuestionGenerator(false);
-                  setGeneratedContent(null);
-                }}
+                onClick={confirmCancel}
                 className="px-4 py-2 border rounded-md"
               >
                 Batal
@@ -472,6 +577,39 @@ export default function PaketSoalDetail({ paketId }: PaketSoalDetailProps) {
           </div>
         )}
       </div>
+
+      {/* Delete Question Confirmation Modal */}
+      {showDeleteModal && questionToDelete && (
+        <ConfirmModal
+          isOpen={showDeleteModal}
+          onClose={() => {
+            setShowDeleteModal(false);
+            setQuestionToDelete(null);
+          }}
+          onConfirm={handleDeleteQuestion}
+          title="Hapus Soal"
+          message={`Apakah Anda yakin ingin menghapus soal "${questionToDelete.question}"? Tindakan ini tidak dapat dibatalkan.`}
+          confirmText="Hapus"
+          cancelText="Batal"
+          confirmButtonClass="bg-red-600 hover:bg-red-700"
+          icon={<AlertTriangle className="h-6 w-6 text-red-600" />}
+        />
+      )}
+
+      {/* Cancel Edit Confirmation Modal */}
+      {showCancelModal && (
+        <ConfirmModal
+          isOpen={showCancelModal}
+          onClose={() => setShowCancelModal(false)}
+          onConfirm={handleCancelEdit}
+          title="Batalkan Perubahan"
+          message="Anda memiliki perubahan yang belum disimpan. Apakah Anda yakin ingin membatalkan perubahan?"
+          confirmText="Ya, Batalkan"
+          cancelText="Tidak, Lanjutkan Edit"
+          confirmButtonClass="bg-red-600 hover:bg-red-700"
+          icon={<AlertTriangle className="h-6 w-6 text-red-600" />}
+        />
+      )}
     </div>
   );
 }

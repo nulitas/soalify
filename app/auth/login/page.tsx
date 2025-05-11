@@ -7,6 +7,7 @@ import axios from "axios";
 import Link from "next/link";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -73,7 +74,14 @@ export default function LoginPage() {
         "Authorization"
       ] = `Bearer ${response.data.access_token}`;
 
-      router.push("/dashboard");
+      toast.success("Login berhasil! Mengalihkan ke dashboard...", {
+        duration: 3000,
+        position: "top-center",
+      });
+
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 1000);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         console.error(
@@ -84,8 +92,16 @@ export default function LoginPage() {
           ...prev,
           email: "Login gagal. Periksa kredensial Anda.",
         }));
+
+        toast.error("Login gagal. Periksa email dan password Anda.", {
+          duration: 4000,
+          position: "top-center",
+        });
       } else {
         console.error("Unexpected error:", error);
+        toast.error("Terjadi kesalahan. Silakan coba lagi nanti.", {
+          duration: 4000,
+        });
       }
     } finally {
       setLoading(false);
@@ -94,6 +110,26 @@ export default function LoginPage() {
 
   return (
     <main className="min-h-screen flex flex-col">
+      {/* Add Toaster component */}
+      <Toaster
+        toastOptions={{
+          success: {
+            style: {
+              background: "#10B981",
+              color: "white",
+              fontWeight: "500",
+            },
+          },
+          error: {
+            style: {
+              background: "#EF4444",
+              color: "white",
+              fontWeight: "500",
+            },
+          },
+        }}
+      />
+
       <div className="flex-1 flex items-center justify-center px-4 py-20">
         <div className="w-full max-w-md">
           <div className="mb-8">

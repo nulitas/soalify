@@ -1,30 +1,30 @@
 "use client";
 
 import type React from "react";
-
 import { useState } from "react";
 import DashboardSidebar from "@/components/dashboard/dashboard-sidebar";
 import DashboardHeader from "@/components/dashboard/dashboard-header";
+
+export type DashboardTab =
+  | "membuat-soal"
+  | "manajemen-paket-soal"
+  | "manajemen-tag"
+  | "manajemen-dokumen"
+  | "pengaturan";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [activeTab, setActiveTab] = useState<
-    | "membuat-soal"
-    | "manajemen-paket-soal"
-    | "manajemen-tag"
-    | "manajemen-dokumen"
-    | "pengaturan"
-  >("membuat-soal");
+  const [activeTab, setActiveTab] = useState<DashboardTab>("membuat-soal");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-[#f9f7f3] flex">
       {/* Desktop Sidebar - hidden on mobile */}
       <div className="hidden md:block">
-        <DashboardSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+        <DashboardSidebar />
       </div>
 
       {/* Main content area */}

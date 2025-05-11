@@ -3,6 +3,9 @@
 import { useState, useEffect } from "react";
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";
+import toast, { Toaster } from "react-hot-toast";
+import ConfirmModal from "@/components/ui/confirm-modal";
+import { AlertTriangle } from "lucide-react";
 
 export default function ManajemenTag() {
   const [tags, setTags] = useState<
@@ -15,6 +18,11 @@ export default function ManajemenTag() {
     id: number | null;
     name: string;
   }>({ id: null, name: "" });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [tagToDelete, setTagToDelete] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -27,15 +35,22 @@ export default function ManajemenTag() {
           const axiosError = err as {
             response?: { data?: { detail?: string }; status?: number };
           };
-          setError(
-            axiosError.response?.data?.detail || "Gagal mengambil data."
-          );
+          const errorMessage =
+            axiosError.response?.data?.detail || "Gagal mengambil data.";
+
+          setError(errorMessage);
+          toast.error(errorMessage);
 
           if (axiosError.response?.status === 401) {
-            router.push("/auth/login");
+            toast.error("Sesi Anda telah berakhir. Silakan login kembali.");
+            setTimeout(() => {
+              router.push("/auth/login");
+            }, 2000);
           }
         } else {
-          setError("Terjadi kesalahan tidak dikenal.");
+          const errorMessage = "Terjadi kesalahan tidak dikenal.";
+          setError(errorMessage);
+          toast.error(errorMessage);
         }
       } finally {
         setLoading(false);
@@ -46,29 +61,60 @@ export default function ManajemenTag() {
   }, [router]);
 
   const handleAddTag = async () => {
-    if (!newTag.trim()) return;
+    if (!newTag.trim()) {
+      toast.error("Nama tag tidak boleh kosong");
+      return;
+    }
+
+    const loadingToast = toast.loading("Menambahkan tag...");
 
     try {
       const response = await api.post("/tags", { tag_name: newTag });
       setTags((prev) => [...prev, response.data]);
       setNewTag("");
+      setError("");
+      toast.success("Tag berhasil ditambahkan", { id: loadingToast });
     } catch (err) {
       if (err && typeof err === "object" && "response" in err) {
         const axiosError = err as { response?: { data?: { detail?: string } } };
-        setError(axiosError.response?.data?.detail || "Gagal menambahkan tag");
+        const errorMessage =
+          axiosError.response?.data?.detail || "Gagal menambahkan tag";
+        setError(errorMessage);
+        toast.error(errorMessage, { id: loadingToast });
+      } else {
+        toast.error("Gagal menambahkan tag", { id: loadingToast });
       }
     }
   };
 
-  const handleDeleteTag = async (tagId: number) => {
+  const confirmDeleteTag = (tagId: number, tagName: string) => {
+    setTagToDelete({ id: tagId, name: tagName });
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteTag = async () => {
+    if (!tagToDelete) return;
+
+    const loadingToast = toast.loading("Menghapus tag...");
+
     try {
-      await api.delete(`/tags/${tagId}`);
-      setTags((prev) => prev.filter((tag) => tag.tag_id !== tagId));
+      await api.delete(`/tags/${tagToDelete.id}`);
+      setTags((prev) => prev.filter((tag) => tag.tag_id !== tagToDelete.id));
+      setError("");
+      toast.success("Tag berhasil dihapus", { id: loadingToast });
     } catch (err) {
       if (err && typeof err === "object" && "response" in err) {
         const axiosError = err as { response?: { data?: { detail?: string } } };
-        setError(axiosError.response?.data?.detail || "Gagal menghapus tag");
+        const errorMessage =
+          axiosError.response?.data?.detail || "Gagal menghapus tag";
+        setError(errorMessage);
+        toast.error(errorMessage, { id: loadingToast });
+      } else {
+        toast.error("Gagal menghapus tag", { id: loadingToast });
       }
+    } finally {
+      setShowDeleteModal(false);
+      setTagToDelete(null);
     }
   };
 
@@ -81,7 +127,12 @@ export default function ManajemenTag() {
   };
 
   const handleUpdateTag = async () => {
-    if (!editingTag.id || !editingTag.name.trim()) return;
+    if (!editingTag.id || !editingTag.name.trim()) {
+      toast.error("Nama tag tidak boleh kosong");
+      return;
+    }
+
+    const loadingToast = toast.loading("Memperbarui tag...");
 
     try {
       const response = await api.put(`/tags/${editingTag.id}`, {
@@ -97,16 +148,49 @@ export default function ManajemenTag() {
       );
       setEditingTag({ id: null, name: "" });
       setError("");
+      toast.success("Tag berhasil diperbarui", { id: loadingToast });
     } catch (err) {
       if (err && typeof err === "object" && "response" in err) {
         const axiosError = err as { response?: { data?: { detail?: string } } };
-        setError(axiosError.response?.data?.detail || "Gagal menghapus tag");
+        const errorMessage =
+          axiosError.response?.data?.detail || "Gagal memperbarui tag";
+        setError(errorMessage);
+        toast.error(errorMessage, { id: loadingToast });
+      } else {
+        toast.error("Gagal memperbarui tag", { id: loadingToast });
       }
     }
   };
 
   return (
     <div>
+      {/* Toast container */}
+      <Toaster
+        toastOptions={{
+          success: {
+            style: {
+              background: "#10B981",
+              color: "white",
+              fontWeight: "500",
+            },
+          },
+          error: {
+            style: {
+              background: "#EF4444",
+              color: "white",
+              fontWeight: "500",
+            },
+          },
+          loading: {
+            style: {
+              background: "#3B82F6",
+              color: "white",
+              fontWeight: "500",
+            },
+          },
+        }}
+      />
+
       <h1 className="text-2xl md:text-3xl font-medium title-font mb-6">
         Manajemen Tag
       </h1>
@@ -139,17 +223,20 @@ export default function ManajemenTag() {
                           setEditingTag({ ...editingTag, name: e.target.value })
                         }
                         className="bg-transparent outline-none w-24"
+                        autoFocus
                       />
                       <div className="flex gap-1 ml-2">
                         <button
                           onClick={handleUpdateTag}
                           className="text-green-500 hover:text-green-700"
+                          title="Simpan"
                         >
                           ✓
                         </button>
                         <button
                           onClick={handleCancelEdit}
                           className="text-gray-500 hover:text-gray-700"
+                          title="Batal"
                         >
                           ×
                         </button>
@@ -164,12 +251,16 @@ export default function ManajemenTag() {
                             handleStartEdit(tag.tag_id, tag.tag_name)
                           }
                           className="text-gray-500 hover:text-blue-500"
+                          title="Edit"
                         >
                           ✎
                         </button>
                         <button
-                          onClick={() => handleDeleteTag(tag.tag_id)}
+                          onClick={() =>
+                            confirmDeleteTag(tag.tag_id, tag.tag_name)
+                          }
                           className="text-gray-500 hover:text-red-500"
+                          title="Hapus"
                         >
                           ×
                         </button>
@@ -190,6 +281,11 @@ export default function ManajemenTag() {
             value={newTag}
             onChange={(e) => setNewTag(e.target.value)}
             className="px-4 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-black"
+            onKeyPress={(e) => {
+              if (e.key === "Enter") {
+                handleAddTag();
+              }
+            }}
           />
           <button
             onClick={handleAddTag}
@@ -199,6 +295,24 @@ export default function ManajemenTag() {
           </button>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && tagToDelete && (
+        <ConfirmModal
+          isOpen={showDeleteModal}
+          onClose={() => {
+            setShowDeleteModal(false);
+            setTagToDelete(null);
+          }}
+          onConfirm={handleDeleteTag}
+          title="Hapus Tag"
+          message={`Apakah Anda yakin ingin menghapus tag "${tagToDelete.name}"? Tindakan ini tidak dapat dibatalkan.`}
+          confirmText="Hapus"
+          cancelText="Batal"
+          confirmButtonClass="bg-red-600 hover:bg-red-700"
+          icon={<AlertTriangle className="h-6 w-6 text-red-600" />}
+        />
+      )}
     </div>
   );
 }

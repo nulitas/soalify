@@ -1,10 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Plus, Loader2, Trash2, X } from "lucide-react";
 import Link from "next/link";
 import axios from "axios";
+import toast, { Toaster } from "react-hot-toast";
+import ConfirmModal from "@/components/ui/confirm-modal";
+import { AlertTriangle } from "lucide-react";
 import api from "@/lib/api";
+import { useRouter } from "next/navigation";
+
 interface PaketSoal {
   package_id: number;
   package_name: string;
@@ -33,44 +38,61 @@ export default function ManajemenPaketSoal() {
   const [availableTags, setAvailableTags] = useState<Tag[]>([]);
   const [isLoadingTags, setIsLoadingTags] = useState(true);
   const [, setUserId] = useState<number | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [packageToDelete, setPackageToDelete] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
+  const router = useRouter();
 
-  const fetchPackages = async (userId: number) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const response = await api.get("/packages/", {
-        params: { user_id: userId },
-      });
+  const fetchPackages = useCallback(
+    async (userId: number) => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const response = await api.get("/packages/", {
+          params: { user_id: userId },
+        });
 
-      if (!Array.isArray(response.data)) {
-        throw new Error("Invalid API response format");
+        if (!Array.isArray(response.data)) {
+          throw new Error("Invalid API response format");
+        }
+
+        const formattedData = response.data.map(
+          (pkg: {
+            id: number;
+            package_name: string;
+            tags?: { tag_id: number; tag_name: string }[];
+            questions?: { question: string; answer: string }[];
+          }) => ({
+            package_id: pkg.id,
+            package_name: pkg.package_name,
+            tags: pkg.tags || [],
+            questions: pkg.questions || [],
+          })
+        );
+        setPaketSoalList(formattedData);
+      } catch (err) {
+        console.error("Failed to fetch packages:", err);
+        setError("Gagal memuat data paket soal. Silakan coba lagi.");
+
+        if (axios.isAxiosError(err)) {
+          console.log("API Error:", err.response?.data);
+
+          if (axios.isAxiosError(err) && err.response?.status === 401) {
+            toast.error("Sesi Anda telah berakhir. Silakan login kembali.");
+            setTimeout(() => {
+              router.push("/auth/login");
+            }, 2000);
+          }
+        }
+      } finally {
+        setIsLoading(false);
       }
+    },
+    [router]
+  );
 
-      const formattedData = response.data.map(
-        (pkg: {
-          id: number;
-          package_name: string;
-          tags?: { tag_id: number; tag_name: string }[];
-          questions?: { question: string; answer: string }[];
-        }) => ({
-          package_id: pkg.id,
-          package_name: pkg.package_name,
-          tags: pkg.tags || [],
-          questions: pkg.questions || [],
-        })
-      );
-      setPaketSoalList(formattedData);
-    } catch (err) {
-      console.error("Failed to fetch packages:", err);
-      setError("Gagal memuat data paket soal. Silakan coba lagi.");
-
-      if (axios.isAxiosError(err)) {
-        console.log("API Error:", err.response?.data);
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
   const fetchAllTags = async (userId: number) => {
     try {
       setIsLoadingTags(true);
@@ -88,6 +110,7 @@ export default function ManajemenPaketSoal() {
       setAvailableTags(mappedTags);
     } catch (err) {
       console.error("Failed to fetch tags:", err);
+      toast.error("Gagal memuat data tag.");
     } finally {
       setIsLoadingTags(false);
     }
@@ -99,6 +122,7 @@ export default function ManajemenPaketSoal() {
         const token = localStorage.getItem("token");
         if (!token) {
           setError("Anda belum login.");
+          toast.error("Anda belum login. Silakan login terlebih dahulu.");
           setIsLoading(false);
           return;
         }
@@ -119,22 +143,54 @@ export default function ManajemenPaketSoal() {
       } catch (err) {
         console.error("Gagal mengambil user:", err);
         setError("Gagal mengambil data pengguna.");
+        toast.error("Gagal mengambil data pengguna. Silakan coba lagi nanti.");
         setIsLoading(false);
+
+        if (axios.isAxiosError(err) && err.response?.status === 401) {
+          toast.error("Sesi Anda telah berakhir. Silakan login kembali.");
+          setTimeout(() => {
+            router.push("/auth/login");
+          }, 2000);
+        }
       }
     };
 
     fetchData();
-  }, []);
+  }, [fetchPackages, router]);
 
-  const deletePackage = async (packageId: number) => {
+  const confirmDeletePackage = (packageId: number, packageName: string) => {
+    setPackageToDelete({ id: packageId, name: packageName });
+    setShowDeleteModal(true);
+  };
+
+  const handleDeletePackage = async () => {
+    if (!packageToDelete) return;
+
+    const loadingToast = toast.loading("Menghapus paket soal...");
+
     try {
-      await api.delete(`/packages/${packageId}`);
+      await api.delete(`/packages/${packageToDelete.id}`);
       setPaketSoalList((prev) =>
-        prev.filter((pkg) => pkg.package_id !== packageId)
+        prev.filter((pkg) => pkg.package_id !== packageToDelete.id)
       );
+      toast.success("Paket soal berhasil dihapus", { id: loadingToast });
     } catch (err) {
       console.error("Gagal menghapus paket soal:", err);
-      alert("Gagal menghapus paket soal. Silakan coba lagi.");
+
+      if (err && typeof err === "object" && "response" in err) {
+        const axiosError = err as { response?: { data?: { detail?: string } } };
+        const errorMessage =
+          axiosError.response?.data?.detail || "Gagal menghapus paket soal";
+        setError(errorMessage);
+        toast.error(errorMessage, { id: loadingToast });
+      } else {
+        toast.error("Gagal menghapus paket soal. Silakan coba lagi.", {
+          id: loadingToast,
+        });
+      }
+    } finally {
+      setShowDeleteModal(false);
+      setPackageToDelete(null);
     }
   };
 
@@ -154,6 +210,7 @@ export default function ManajemenPaketSoal() {
     const tag = availableTags.find((t) => t.tag_id === tagId);
     return tag ? tag.tag_name : "";
   };
+
   const filteredPackages = paketSoalList.filter((pkg) => {
     const matchesSearch = pkg.package_name
       .toLowerCase()
@@ -168,6 +225,33 @@ export default function ManajemenPaketSoal() {
 
   return (
     <div>
+      {/* Toast container */}
+      <Toaster
+        toastOptions={{
+          success: {
+            style: {
+              background: "#10B981",
+              color: "white",
+              fontWeight: "500",
+            },
+          },
+          error: {
+            style: {
+              background: "#EF4444",
+              color: "white",
+              fontWeight: "500",
+            },
+          },
+          loading: {
+            style: {
+              background: "#3B82F6",
+              color: "white",
+              fontWeight: "500",
+            },
+          },
+        }}
+      />
+
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl md:text-3xl font-medium title-font">
           Manajemen Paket Soal
@@ -298,7 +382,10 @@ export default function ManajemenPaketSoal() {
                   </div>
                 </Link>
                 <button
-                  onClick={() => deletePackage(paket.package_id)}
+                  onClick={(e) => {
+                    e.preventDefault(); // Prevent link navigation
+                    confirmDeletePackage(paket.package_id, paket.package_name);
+                  }}
                   className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-md hover:bg-red-600 transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -308,6 +395,24 @@ export default function ManajemenPaketSoal() {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && packageToDelete && (
+        <ConfirmModal
+          isOpen={showDeleteModal}
+          onClose={() => {
+            setShowDeleteModal(false);
+            setPackageToDelete(null);
+          }}
+          onConfirm={handleDeletePackage}
+          title="Hapus Paket Soal"
+          message={`Apakah Anda yakin ingin menghapus paket soal "${packageToDelete.name}"? Tindakan ini tidak dapat dibatalkan.`}
+          confirmText="Hapus"
+          cancelText="Batal"
+          confirmButtonClass="bg-red-600 hover:bg-red-700"
+          icon={<AlertTriangle className="h-6 w-6 text-red-600" />}
+        />
+      )}
     </div>
   );
 }
