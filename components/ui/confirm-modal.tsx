@@ -31,7 +31,6 @@ export default function ConfirmModal({
 }: ConfirmModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
 
-  // Close modal when clicking outside
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
       if (
@@ -42,7 +41,6 @@ export default function ConfirmModal({
       }
     };
 
-    // Close modal when pressing Escape key
     const handleEscapeKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         onClose();
@@ -52,7 +50,6 @@ export default function ConfirmModal({
     if (isOpen) {
       document.addEventListener("mousedown", handleOutsideClick);
       document.addEventListener("keydown", handleEscapeKey);
-      // Prevent body scrolling when modal is open
       document.body.style.overflow = "hidden";
     }
 
@@ -63,7 +60,6 @@ export default function ConfirmModal({
     };
   }, [isOpen, onClose]);
 
-  // Handle width based on size prop
   const getModalWidth = () => {
     switch (size) {
       case "sm":

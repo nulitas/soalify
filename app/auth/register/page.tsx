@@ -15,7 +15,7 @@ export default function RegisterPage() {
     password: "",
     confirmPassword: "",
     fullname: "",
-    role_id: 1,
+    role_id: 2,
   });
   const [errors, setErrors] = useState({
     email: "",
