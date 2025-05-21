@@ -1,8 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import PaketSoalDetail from "@/components/dashboard/pages/paket-soal-detail";
-
+import PaketSoalDetail from "@/components/dashboard/paket-soal/paket-soal-detail";
 export default function PaketSoalDetailPage() {
   const params = useParams();
   const paketId = params?.id ? parseInt(params.id as string) : null;
