@@ -1,47 +1,180 @@
-import { ArrowRight } from "lucide-react";
-
 export default function Features() {
   const features = [
     {
       title: "Upload Materi Pelajaran",
       description:
         "Admin bisa mengunggah file PDF berisi materi pelajaran. Materi ini nantinya akan dipakai oleh sistem untuk membuat soal yang sesuai.",
+      step: "01",
+      side: "left",
     },
     {
       title: "Kelola Akun Pengguna",
       description:
         "Admin juga bisa membuat akun baru untuk guru, menghapus akun, atau mereset data jika diperlukan.",
+      step: "02",
+      side: "right",
     },
     {
       title: "Reset Data Materi",
       description:
         "Kalau materi yang diunggah sudah tidak relevan atau ingin diganti, admin bisa menghapus semua materi lama dan menggantinya dengan materi baru.",
+      step: "03",
+      side: "left",
     },
     {
       title: "Membuat Soal dan Jawaban",
       description:
         'Guru cukup mengisi topik atau konteks materi yang ingin dibuatkan soal, misalnya "Materi Matematika tentang Pecahan". Setelah itu, Soalify akan langsung membuatkan soal beserta jawabannya sesuai materi yang telah diunggah oleh admin sebelumnya.',
+      step: "04",
+      side: "right",
     },
   ];
 
   return (
     <section id="fitur" className="px-4 md:px-8 py-20 bg-white">
       <div className="max-w-7xl mx-auto">
-        <h2 className="section-title">FITUR</h2>
-        <h3 className="section-heading">Apa yang membedakan dari yang lain</h3>
+        <div className="text-center mb-16">
+          <h2 className="section-title">FITUR</h2>
+          <h3 className="section-heading mb-6 mx-auto">
+            Apa yang membedakan dari yang lain
+          </h3>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Fitur-fitur canggih yang dirancang khusus untuk kemudahan guru dan
+            admin dalam mengelola soal ujian.
+          </p>
+        </div>
 
-        <div className="space-y-12">
+        <div className="space-y-20">
           {features.map((feature, index) => (
             <div
               key={index}
-              className="flex items-start gap-4 pb-12 border-b border-gray-200 last:border-0 max-w-3xl"
+              className={`flex flex-col lg:flex-row items-center gap-12 ${
+                feature.side === "right" ? "lg:flex-row-reverse" : ""
+              }`}
             >
-              <ArrowRight className="w-6 h-6 mt-1 flex-shrink-0 text-black" />
-              <div>
-                <h4 className="text-xl title-font font-medium mb-4">
-                  {feature.title}
-                </h4>
-                <p className="section-description">{feature.description}</p>
+              {/* Content */}
+              <div className="flex-1 space-y-6">
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-black text-white rounded-full flex items-center justify-center font-bold">
+                    {feature.step}
+                  </div>
+                  <h4 className="text-2xl title-font font-medium">
+                    {feature.title}
+                  </h4>
+                </div>
+                <p className="section-description text-lg leading-relaxed">
+                  {feature.description}
+                </p>
+              </div>
+
+              {/* Mockup/Image */}
+              <div className="flex-1">
+                <div className="bg-gray-50 rounded-2xl p-8 shadow-lg border">
+                  {feature.step === "01" && (
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-3 mb-6">
+                        <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                          <span className="text-white text-sm">📄</span>
+                        </div>
+                        <span className="font-medium">Upload Materi</span>
+                      </div>
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                        <div className="text-4xl mb-4">📁</div>
+                        <p className="text-gray-600">
+                          Drag & drop PDF files here
+                        </p>
+                        <button className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg">
+                          Browse Files
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {feature.step === "02" && (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between mb-6">
+                        <h4 className="font-medium">Kelola Pengguna</h4>
+                        <button className="px-3 py-1 bg-green-500 text-white rounded text-sm">
+                          + Tambah User
+                        </button>
+                      </div>
+                      <div className="space-y-3">
+                        {["John Doe", "Jane Smith", "Ahmad Rizki"].map(
+                          (name, idx) => (
+                            <div
+                              key={idx}
+                              className="flex items-center justify-between p-3 bg-white rounded border"
+                            >
+                              <span>{name}</span>
+                              <div className="flex space-x-2">
+                                <button className="text-blue-500 text-sm">
+                                  Edit
+                                </button>
+                                <button className="text-red-500 text-sm">
+                                  Delete
+                                </button>
+                              </div>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {feature.step === "03" && (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between mb-6">
+                        <h4 className="font-medium">Data Materi</h4>
+                        <button className="px-3 py-1 bg-red-500 text-white rounded text-sm">
+                          Delete All
+                        </button>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between p-2 bg-red-50 rounded border border-red-200">
+                          <span className="text-sm">
+                            Matematika_Kelas_10.pdf
+                          </span>
+                          <span className="text-red-500 text-xs">
+                            Will be deleted
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between p-2 bg-red-50 rounded border border-red-200">
+                          <span className="text-sm">Fisika_Semester_1.pdf</span>
+                          <span className="text-red-500 text-xs">
+                            Will be deleted
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {feature.step === "04" && (
+                    <div className="space-y-4">
+                      <div className="mb-6">
+                        <h4 className="font-medium mb-4">Generate Soal</h4>
+                        <div className="space-y-3">
+                          <input
+                            type="text"
+                            placeholder="Masukkan topik materi..."
+                            className="w-full p-3 border rounded-lg"
+                            defaultValue="Pecahan dalam Matematika"
+                          />
+                          <button className="w-full p-3 bg-black text-white rounded-lg">
+                            Generate Soal
+                          </button>
+                        </div>
+                      </div>
+                      <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <p className="text-sm font-medium text-green-800 mb-2">
+                          Soal berhasil dibuat!
+                        </p>
+                        <p className="text-xs text-green-600">
+                          5 soal telah dibuat
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           ))}
