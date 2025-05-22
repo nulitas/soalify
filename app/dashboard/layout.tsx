@@ -12,7 +12,6 @@ export type DashboardTab =
   | "manajemen-tag"
   | "manajemen-dokumen"
   | "pengaturan";
-
 export default function DashboardLayout({
   children,
 }: {

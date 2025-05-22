@@ -20,6 +20,7 @@ interface DashboardHeaderProps {
     | "manajemen-paket-soal"
     | "manajemen-tag"
     | "manajemen-dokumen"
+    | "manajemen-pengguna"
     | "pengaturan";
   setActiveTab: (
     tab:
@@ -27,6 +28,7 @@ interface DashboardHeaderProps {
       | "manajemen-paket-soal"
       | "manajemen-tag"
       | "manajemen-dokumen"
+      | "manajemen-pengguna"
       | "pengaturan"
   ) => void;
 }
