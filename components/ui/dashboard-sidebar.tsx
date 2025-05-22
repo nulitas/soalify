@@ -12,6 +12,7 @@ import {
   LogOut,
   Home,
   AlertTriangle,
+  Users,
 } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 import api from "@/lib/api";
@@ -22,10 +23,24 @@ export default function DashboardSidebar() {
   const router = useRouter();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
+  const [userRole, setUserRole] = useState<number>(2);
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
       api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    }
+  }, []);
+
+  useEffect(() => {
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      try {
+        const user = JSON.parse(userData);
+        setUserRole(user.role_id);
+      } catch (error) {
+        console.error("Error parsing user data:", error);
+      }
     }
   }, []);
 
@@ -35,6 +50,8 @@ export default function DashboardSidebar() {
     if (pathname.startsWith("/dashboard/manajemen-tag")) return "manajemen-tag";
     if (pathname.startsWith("/dashboard/manajemen-dokumen"))
       return "manajemen-dokumen";
+    if (pathname.startsWith("/dashboard/manajemen-pengguna"))
+      return "manajemen-pengguna";
     if (pathname.startsWith("/dashboard/pengaturan")) return "pengaturan";
     return "membuat-soal";
   };
@@ -66,6 +83,16 @@ export default function DashboardSidebar() {
       tab: "manajemen-dokumen",
       path: "/dashboard/manajemen-dokumen",
     },
+    ...(userRole === 1
+      ? [
+          {
+            name: "Manajemen Pengguna",
+            icon: Users,
+            tab: "manajemen-pengguna",
+            path: "/dashboard/manajemen-pengguna",
+          },
+        ]
+      : []),
     {
       name: "Pengaturan",
       icon: Settings,

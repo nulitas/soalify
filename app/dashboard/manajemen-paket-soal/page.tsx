@@ -383,7 +383,7 @@ export default function ManajemenPaketSoal() {
                 </Link>
                 <button
                   onClick={(e) => {
-                    e.preventDefault(); // Prevent link navigation
+                    e.preventDefault();
                     confirmDeletePackage(paket.package_id, paket.package_name);
                   }}
                   className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-md hover:bg-red-600 transition-colors"

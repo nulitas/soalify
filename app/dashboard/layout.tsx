@@ -8,6 +8,7 @@ import DashboardHeader from "@/components/ui/dashboard-header";
 export type DashboardTab =
   | "membuat-soal"
   | "manajemen-paket-soal"
+  | "manajemen-pengguna"
   | "manajemen-tag"
   | "manajemen-dokumen"
   | "pengaturan";

@@ -6,7 +6,7 @@ import axios from "axios";
 import Link from "next/link";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
-
+import toast, { Toaster } from "react-hot-toast";
 export default function RegisterPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
@@ -90,14 +90,19 @@ export default function RegisterPage() {
         role_id: formData.role_id,
       };
 
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/users/register`,
+      await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/users/public/register`,
         requestBody
       );
 
-      console.log("Registration successful:", response.data);
-      alert("Registration successful!");
-      router.push("/auth/login");
+      toast.success("Registrasi berhasil! Mengalihkan ke login...", {
+        duration: 3000,
+        position: "top-center",
+      });
+
+      setTimeout(() => {
+        router.push("/auth/login");
+      }, 1000);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         console.error(
@@ -106,10 +111,18 @@ export default function RegisterPage() {
         );
         setErrors((prev) => ({
           ...prev,
-          email: "Registration failed. Please try again.",
+          email: "Registrasi gagal. Silakan coba lagi.",
         }));
+
+        toast.error("Registrasi gagal. Periksa data Anda.", {
+          duration: 4000,
+          position: "top-center",
+        });
       } else {
         console.error("Unexpected error:", error);
+        toast.error("Terjadi kesalahan. Silakan coba lagi nanti.", {
+          duration: 4000,
+        });
       }
     } finally {
       setLoading(false);
@@ -118,6 +131,24 @@ export default function RegisterPage() {
 
   return (
     <main className="min-h-screen flex flex-col">
+      <Toaster
+        toastOptions={{
+          success: {
+            style: {
+              background: "#10B981",
+              color: "white",
+              fontWeight: "500",
+            },
+          },
+          error: {
+            style: {
+              background: "#EF4444",
+              color: "white",
+              fontWeight: "500",
+            },
+          },
+        }}
+      />
       <div className="flex-1 flex items-center justify-center px-4 py-20">
         <div className="w-full max-w-md">
           <div className="mb-8">
