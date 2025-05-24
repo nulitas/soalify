@@ -1,7 +1,10 @@
 "use client";
 
 import type React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/auth-context";
+
 import DashboardSidebar from "@/components/ui/dashboard-sidebar";
 import DashboardHeader from "@/components/ui/dashboard-header";
 
@@ -12,6 +15,7 @@ export type DashboardTab =
   | "manajemen-tag"
   | "manajemen-dokumen"
   | "pengaturan";
+
 export default function DashboardLayout({
   children,
 }: {
@@ -19,6 +23,25 @@ export default function DashboardLayout({
 }) {
   const [activeTab, setActiveTab] = useState<DashboardTab>("membuat-soal");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (loading) return;
+
+    if (!user) {
+      router.push("/auth/login");
+    }
+  }, [user, loading, router]);
+
+  if (loading || !user) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-[#f9f7f3]">
+        <div className="font-medium text-lg">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#f9f7f3] flex">

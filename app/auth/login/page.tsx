@@ -1,16 +1,17 @@
 "use client";
 
-import api from "@/lib/api";
 import type React from "react";
 import { useState } from "react";
 import axios from "axios";
 import Link from "next/link";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
-import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 
+import { useAuth } from "@/context/auth-context";
+
 export default function LoginPage() {
-  const router = useRouter();
+  const { login } = useAuth();
+
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -57,6 +58,8 @@ export default function LoginPage() {
     if (!validateForm()) return;
 
     setLoading(true);
+    const loadingToast = toast.loading("Mencoba masuk...");
+
     try {
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/users/login`,
@@ -67,21 +70,13 @@ export default function LoginPage() {
         { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
       );
 
-      localStorage.setItem("token", response.data.access_token);
-      localStorage.setItem("user", JSON.stringify(response.data.user));
-
-      api.defaults.headers.common[
-        "Authorization"
-      ] = `Bearer ${response.data.access_token}`;
+      login(response.data.access_token, response.data.user);
 
       toast.success("Login berhasil! Mengalihkan ke dashboard...", {
-        duration: 3000,
+        id: loadingToast,
+        duration: 2000,
         position: "top-center",
       });
-
-      setTimeout(() => {
-        router.push("/dashboard");
-      }, 1000);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         console.error(
@@ -94,12 +89,14 @@ export default function LoginPage() {
         }));
 
         toast.error("Login gagal. Periksa email dan password Anda.", {
+          id: loadingToast,
           duration: 4000,
           position: "top-center",
         });
       } else {
         console.error("Unexpected error:", error);
         toast.error("Terjadi kesalahan. Silakan coba lagi nanti.", {
+          id: loadingToast,
           duration: 4000,
         });
       }
@@ -110,7 +107,6 @@ export default function LoginPage() {
 
   return (
     <main className="min-h-screen flex flex-col">
-      {/* Add Toaster component */}
       <Toaster
         toastOptions={{
           success: {
@@ -123,6 +119,13 @@ export default function LoginPage() {
           error: {
             style: {
               background: "#EF4444",
+              color: "white",
+              fontWeight: "500",
+            },
+          },
+          loading: {
+            style: {
+              background: "#3B82F6",
               color: "white",
               fontWeight: "500",
             },

@@ -2,10 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useAuth } from "@/context/auth-context";
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const { user, loading } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -17,7 +20,7 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 bg-white ${
+      className={`fixed top-0 left-0 right-0 z-50 bg-white transition-shadow duration-200 ${
         isScrolled ? "shadow-sm" : ""
       }`}
     >
@@ -26,7 +29,8 @@ export default function Navbar() {
           soalify
         </Link>
 
-        <div className="hidden md:flex gap-8">
+        {/* --- Desktop Menu --- */}
+        <div className="hidden md:flex items-center gap-8">
           {[
             { name: "Tentang", url: "#tentang" },
             { name: "Fitur", url: "#fitur" },
@@ -41,16 +45,27 @@ export default function Navbar() {
                 {item.name}
               </span>
             </Link>
-          ))}
-          <Link
-            href="/auth/login"
-            className="nav-text px-4 py-1 border border-black rounded-full hover:bg-black hover:text-white transition-colors"
-          >
-            Sign In
-          </Link>
+          ))}{" "}
+          {loading ? (
+            <div className="w-24 h-8 bg-gray-200 rounded-full animate-pulse"></div>
+          ) : user ? (
+            <Link
+              href="/dashboard"
+              className="nav-text px-4 py-1 border border-black rounded-full bg-black text-white transition-colors"
+            >
+              Dashboard
+            </Link>
+          ) : (
+            <Link
+              href="/auth/login"
+              className="nav-text px-4 py-1 border border-black rounded-full hover:bg-black hover:text-white transition-colors"
+            >
+              Sign In
+            </Link>
+          )}
         </div>
 
-        {/* Mobile menu button */}
+        {/* --- Mobile menu button --- */}
         <button
           className="md:hidden"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -75,7 +90,7 @@ export default function Navbar() {
         </button>
       </div>
 
-      {/* Mobile menu */}
+      {/* --- Mobile menu --- */}
       {isMobileMenuOpen && (
         <div className="md:hidden bg-white px-4 py-4 shadow-md">
           <div className="flex flex-col space-y-4">
@@ -87,6 +102,7 @@ export default function Navbar() {
               <Link
                 key={item.name}
                 href={item.url}
+                onClick={() => setIsMobileMenuOpen(false)}
                 className="nav-text hover:no-underline group transition-colors duration-200 ease-in-out"
               >
                 <span className="group-hover:underline decoration-1 underline-offset-4">
@@ -94,13 +110,26 @@ export default function Navbar() {
                 </span>
               </Link>
             ))}
-            <Link
-              href="/auth"
-              className="nav-text py-2 text-left hover:underline"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Sign In
-            </Link>
+
+            {loading ? (
+              <div className="w-20 h-7 bg-gray-200 rounded-md animate-pulse"></div>
+            ) : user ? (
+              <Link
+                href="/dashboard"
+                className="nav-text py-2 text-white bg-black rounded-md text-center"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Dashboard
+              </Link>
+            ) : (
+              <Link
+                href="/auth/login"
+                className="nav-text py-2 text-left hover:underline"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Sign In
+              </Link>
+            )}
           </div>
         </div>
       )}

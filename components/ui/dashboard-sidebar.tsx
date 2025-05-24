@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -15,34 +15,16 @@ import {
   Users,
 } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
-import api from "@/lib/api";
 import ConfirmModal from "@/components/ui/confirm-modal";
+
+import { useAuth } from "@/context/auth-context";
 
 export default function DashboardSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  const [userRole, setUserRole] = useState<number>(2);
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-    }
-  }, []);
-
-  useEffect(() => {
-    const userData = localStorage.getItem("user");
-    if (userData) {
-      try {
-        const user = JSON.parse(userData);
-        setUserRole(user.role_id);
-      } catch (error) {
-        console.error("Error parsing user data:", error);
-      }
-    }
-  }, []);
+  const { user, logout } = useAuth();
 
   const getActiveTab = () => {
     if (pathname.startsWith("/dashboard/manajemen-paket-soal"))
@@ -57,6 +39,8 @@ export default function DashboardSidebar() {
   };
 
   const activeTab = getActiveTab();
+
+  const userRole = user?.role_id ?? 2;
 
   const menuItems = [
     {
@@ -105,59 +89,32 @@ export default function DashboardSidebar() {
     setShowLogoutModal(true);
   };
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     const loadingToast = toast.loading("Sedang keluar...");
 
-    try {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
+    logout();
 
-      delete api.defaults.headers.common["Authorization"];
-
-      toast.success("Berhasil keluar!", { id: loadingToast });
-
-      setTimeout(() => {
-        router.push("/auth/login");
-      }, 1000);
-    } catch (error) {
-      console.error("Logout error:", error);
-      toast.error("Gagal keluar. Silakan coba lagi.", { id: loadingToast });
-    } finally {
-      setShowLogoutModal(false);
-    }
+    toast.success("Berhasil keluar!", { id: loadingToast });
+    setShowLogoutModal(false);
   };
 
   const handleHomeClick = (e: { preventDefault: () => void }) => {
     e.preventDefault();
-
     router.push("/");
   };
 
   return (
     <div className="bg-white border-r border-gray-200 fixed top-0 left-0 h-screen w-64 flex flex-col z-40">
-      {/* Toast container */}
       <Toaster
         toastOptions={{
           success: {
-            style: {
-              background: "#10B981",
-              color: "white",
-              fontWeight: "500",
-            },
+            style: { background: "#10B981", color: "white", fontWeight: "500" },
           },
           error: {
-            style: {
-              background: "#EF4444",
-              color: "white",
-              fontWeight: "500",
-            },
+            style: { background: "#EF4444", color: "white", fontWeight: "500" },
           },
           loading: {
-            style: {
-              background: "#3B82F6",
-              color: "white",
-              fontWeight: "500",
-            },
+            style: { background: "#3B82F6", color: "white", fontWeight: "500" },
           },
         }}
       />
@@ -207,7 +164,6 @@ export default function DashboardSidebar() {
         </div>
       </div>
 
-      {/* Logout Confirmation Modal */}
       {showLogoutModal && (
         <ConfirmModal
           isOpen={showLogoutModal}

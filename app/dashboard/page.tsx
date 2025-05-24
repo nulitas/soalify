@@ -5,11 +5,36 @@ import { useState } from "react";
 import QuestionGenerator from "@/components/dashboard/question-generator";
 import GeneratedQuestions from "@/components/dashboard/generated-questions";
 
+const exampleTexts = [
+  {
+    id: "bahasa",
+    content:
+      "Bahasa Indonesia adalah bahasa resmi Republik Indonesia dan bahasa persatuan bangsa Indonesia. Bahasa ini diresmikan penggunaannya setelah Proklamasi Kemerdekaan Indonesia, tepatnya sehari sesudahnya, bersamaan dengan mulai berlakunya konstitusi. Berakar dari bahasa Melayu, Bahasa Indonesia digunakan sebagai lingua franca di nusantara selama berabad-abad, memfasilitasi komunikasi antar suku yang memiliki lebih dari 700 bahasa daerah yang berbeda.",
+  },
+  {
+    id: "fotosintesis",
+    content:
+      "Fotosintesis adalah proses biokimia yang dilakukan oleh tumbuhan, alga, dan beberapa jenis bakteri untuk mengubah energi cahaya menjadi energi kimia. Dalam proses ini, tumbuhan hijau menggunakan klorofil (zat hijau daun) untuk menyerap energi dari sinar matahari. Energi ini kemudian digunakan untuk mengubah air (H₂O) dan karbon dioksida (CO₂) dari udara menjadi glukosa (C₆H₁₂O₆), yang merupakan sumber makanan bagi tumbuhan, dan oksigen (O₂) yang dilepaskan ke atmosfer sebagai produk sampingan.",
+  },
+  {
+    id: "pd2",
+    content:
+      "Perang Dunia II adalah sebuah konflik militer global yang berlangsung dari tahun 1939 hingga 1945. Perang ini melibatkan sebagian besar negara di dunia, termasuk semua kekuatan besar, yang pada akhirnya membentuk dua aliansi militer yang berlawanan: Sekutu (Allies) dan Poros (Axis). Perang ini dianggap sebagai konflik paling mematikan dalam sejarah umat manusia, dengan perkiraan korban jiwa mencapai 70 hingga 85 juta orang, dan merupakan pemicu utama berbagai perubahan besar dalam peta politik dunia dan struktur sosial.",
+  },
+  {
+    id: "pythagoras",
+    content:
+      "Teorema Pythagoras adalah prinsip fundamental dalam geometri Euklides yang menjelaskan hubungan antara tiga sisi dari sebuah segitiga siku-siku. Teorema ini menyatakan bahwa kuadrat dari panjang sisi miring (hipotenusa), yaitu sisi yang berhadapan dengan sudut siku-siku, sama dengan jumlah dari kuadrat panjang kedua sisi penyikunya. Secara matematis, jika 'a' dan 'b' adalah panjang sisi penyiku dan 'c' adalah panjang sisi miring, maka berlaku rumus: a² + b² = c².",
+  },
+];
+
 export default function MembuatSoal() {
   const [generatedContent, setGeneratedContent] = useState<{
     result: { questions: { question: string; answer: string }[] };
     method: string;
   } | null>(null);
+
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const handleGenerateQuestions = async (data: {
     query_text: string;
@@ -17,20 +42,11 @@ export default function MembuatSoal() {
     use_rag: boolean;
   }) => {
     try {
-      console.log("API Request:", data);
-
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/questions/generate`,
         data,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
+        { headers: { "Content-Type": "application/json" } }
       );
-
-      console.log("API Response:", response.data);
-
       setGeneratedContent({
         result: response.data.result,
         method: response.data.method,
@@ -39,6 +55,22 @@ export default function MembuatSoal() {
       console.error("Error generating questions:", error);
       alert("Failed to generate questions. Please try again.");
     }
+  };
+
+  const handleCopyClick = (text: string, id: string) => {
+    navigator.clipboard.writeText(text).then(
+      () => {
+        setCopiedId(id);
+
+        setTimeout(() => {
+          setCopiedId(null);
+        }, 2000);
+      },
+      (err) => {
+        console.error("Failed to copy text: ", err);
+        alert("Gagal menyalin teks.");
+      }
+    );
   };
 
   return (
@@ -72,22 +104,25 @@ export default function MembuatSoal() {
 
         <div className="space-y-4 md:space-y-6">
           <div className="bg-white p-4 md:p-6 rounded-lg border border-gray-100 shadow-sm">
-            <h3 className="text-lg font-medium title-font mb-4">Teks Contoh</h3>
+            <h3 className="text-lg font-medium title-font mb-4">
+              Salin Teks Contoh
+            </h3>
             <div className="space-y-3">
-              {[
-                "Bahasa Indonesia adalah bahasa resmi dan nasional Republik Indonesia...",
-                "Fotosintesis adalah proses pembuatan makanan oleh tumbuhan hijau...",
-                "Perang Dunia II adalah konflik global yang berlangsung dari tahun 1939 hingga 1945...",
-                "Teorema Pythagoras menyatakan bahwa dalam segitiga siku-siku...",
-              ].map((template, index) => (
+              {exampleTexts.map((template) => (
                 <button
-                  key={index}
-                  className="w-full flex items-center justify-between p-3 rounded-md border border-gray-200 hover:bg-gray-50 transition-colors"
+                  key={template.id}
+                  onClick={() => handleCopyClick(template.content, template.id)}
+                  disabled={copiedId === template.id}
+                  className="w-full flex items-center justify-between p-3 rounded-md border border-gray-200 hover:bg-gray-50 transition-all disabled:bg-green-50 disabled:border-green-300"
                 >
                   <span className="button-font text-sm truncate text-left">
-                    {template}
+                    {copiedId === template.id
+                      ? "Teks disalin!"
+                      : template.content}
                   </span>
-                  <span className="flex-shrink-0 ml-2">+</span>
+                  <span className="flex-shrink-0 ml-2 font-semibold">
+                    {copiedId === template.id ? "✓" : "+"}
+                  </span>
                 </button>
               ))}
             </div>
@@ -104,20 +139,7 @@ export default function MembuatSoal() {
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-black font-bold">•</span>
-                <span>
-                  Gunakan opsi RAG untuk pemahaman konteks yang lebih baik
-                </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-black font-bold">•</span>
-                <span>Mulai dengan 2-3 pertanyaan untuk menguji kualitas</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-black font-bold">•</span>
-                <span>
-                  Anda dapat mengedit pertanyaan yang dihasilkan sebelum
-                  menyimpan
-                </span>
+                <span>Mulai dengan satu pertanyaan untuk menguji kualitas</span>
               </li>
             </ul>
           </div>

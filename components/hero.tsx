@@ -37,12 +37,12 @@ export default function Hero() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         <div className="max-w-3xl">
-          <div className="mb-6">
+          {/* <div className="mb-6">
             <div className="inline-flex items-center px-4 py-2 bg-gray-50 rounded-full text-sm text-gray-600 mb-6">
               <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
               Telah dipercaya 500+ guru di Indonesia
             </div>
-          </div>
+          </div> */}
 
           <h1 className="text-4xl md:text-[64px] font-semibold leading-[1.1] mb-8 title-font">
             Platform Cerdas untuk Membuat {""}
@@ -78,7 +78,7 @@ export default function Hero() {
               <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
                 <span className="text-green-600 font-semibold">✓</span>
               </div>
-              <span>Gratis untuk 50 soal pertama</span>
+              <span>Gratis untuk semua pengguna</span>
             </div>
           </div>
         </div>

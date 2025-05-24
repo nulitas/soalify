@@ -83,7 +83,7 @@ export default function Services() {
           ))}
         </div>
 
-        <div className="mt-16 text-center">
+        {/* <div className="mt-16 text-center">
           <div className="inline-flex items-center space-x-8 bg-white rounded-full px-8 py-4 shadow-sm border">
             <div className="text-center">
               <div className="text-2xl font-bold text-black">500+</div>
@@ -100,7 +100,7 @@ export default function Services() {
               <div className="text-sm text-gray-500">Kepuasan</div>
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
     </section>
   );
