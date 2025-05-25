@@ -63,7 +63,7 @@ export default function TambahPaketSoal() {
 
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) {
-          router.push("/auth/login");
+          router.push("/login");
         }
       } else if (err instanceof Error) {
         console.log("Generic error:", err.message);

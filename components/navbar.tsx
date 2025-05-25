@@ -57,7 +57,7 @@ export default function Navbar() {
             </Link>
           ) : (
             <Link
-              href="/auth/login"
+              href="/login"
               className="nav-text px-4 py-1 border border-black rounded-full hover:bg-black hover:text-white transition-colors"
             >
               Sign In
@@ -123,7 +123,7 @@ export default function Navbar() {
               </Link>
             ) : (
               <Link
-                href="/auth/login"
+                href="/login"
                 className="nav-text py-2 text-left hover:underline"
                 onClick={() => setIsMobileMenuOpen(false)}
               >

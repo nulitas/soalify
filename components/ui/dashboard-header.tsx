@@ -143,7 +143,7 @@ export default function DashboardHeader({
                 <span className="nav-text">Home</span>
               </Link>
               <Link
-                href="/auth/login"
+                href="/login"
                 className="flex items-center gap-3 py-2"
                 onClick={() => setIsMobileMenuOpen(false)}
               >

@@ -101,7 +101,7 @@ export default function RegisterPage() {
       });
 
       setTimeout(() => {
-        router.push("/auth/login");
+        router.push("/login");
       }, 1000);
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -274,7 +274,7 @@ export default function RegisterPage() {
               <p className="text-sm content-font">
                 Sudah punya akun?{" "}
                 <Link
-                  href="/auth/login"
+                  href="/login"
                   className="ml-2 text-sm button-font font-medium hover:underline"
                 >
                   Masuk

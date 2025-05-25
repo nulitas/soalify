@@ -210,7 +210,7 @@ export default function LoginPage() {
               <p className="text-sm content-font">
                 Tidak punya akun?{" "}
                 <Link
-                  href="/auth/register"
+                  href="/register"
                   className="ml-2 text-sm button-font font-medium hover:underline"
                 >
                   Daftar

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Loader2, Trash2, X } from "lucide-react";
+import { Plus, Trash2, X } from "lucide-react";
 import Link from "next/link";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
@@ -9,6 +9,7 @@ import ConfirmModal from "@/components/ui/confirm-modal";
 import { AlertTriangle } from "lucide-react";
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";
+import LoadingSpinner from "@/components/ui/loading-spinner";
 
 interface PaketSoal {
   package_id: number;
@@ -82,7 +83,7 @@ export default function ManajemenPaketSoal() {
           if (axios.isAxiosError(err) && err.response?.status === 401) {
             toast.error("Sesi Anda telah berakhir. Silakan login kembali.");
             setTimeout(() => {
-              router.push("/auth/login");
+              router.push("/login");
             }, 2000);
           }
         }
@@ -149,7 +150,7 @@ export default function ManajemenPaketSoal() {
         if (axios.isAxiosError(err) && err.response?.status === 401) {
           toast.error("Sesi Anda telah berakhir. Silakan login kembali.");
           setTimeout(() => {
-            router.push("/auth/login");
+            router.push("/login");
           }, 2000);
         }
       }
@@ -225,7 +226,6 @@ export default function ManajemenPaketSoal() {
 
   return (
     <div>
-      {/* Toast container */}
       <Toaster
         toastOptions={{
           success: {
@@ -288,7 +288,9 @@ export default function ManajemenPaketSoal() {
             </label>
             <div className="flex flex-wrap gap-2 mb-3">
               {isLoadingTags ? (
-                <span className="text-sm text-gray-500">Memuat tag...</span>
+                <div className="py-2">
+                  <LoadingSpinner message="Memuat tag..." />
+                </div>
               ) : (
                 <select
                   className="px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-black"
@@ -341,8 +343,8 @@ export default function ManajemenPaketSoal() {
         </div>
 
         {isLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+          <div className="flex justify-center items-center py-16">
+            <LoadingSpinner message="Memuat paket soal..." />
           </div>
         ) : filteredPackages.length === 0 ? (
           <div className="text-center py-12">
@@ -396,7 +398,6 @@ export default function ManajemenPaketSoal() {
         )}
       </div>
 
-      {/* Delete Confirmation Modal */}
       {showDeleteModal && packageToDelete && (
         <ConfirmModal
           isOpen={showDeleteModal}

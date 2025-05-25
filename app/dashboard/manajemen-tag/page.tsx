@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 import ConfirmModal from "@/components/ui/confirm-modal";
 import { AlertTriangle } from "lucide-react";
+import LoadingSpinner from "@/components/ui/loading-spinner";
 
 export default function ManajemenTag() {
   const [tags, setTags] = useState<
@@ -44,7 +45,7 @@ export default function ManajemenTag() {
           if (axiosError.response?.status === 401) {
             toast.error("Sesi Anda telah berakhir. Silakan login kembali.");
             setTimeout(() => {
-              router.push("/auth/login");
+              router.push("/login");
             }, 2000);
           }
         } else {
@@ -201,7 +202,7 @@ export default function ManajemenTag() {
 
         {/* Loading & Error Handling */}
         {loading ? (
-          <p className="text-sm text-gray-500">Memuat tag...</p>
+          <LoadingSpinner message="Memuat tag..." />
         ) : error ? (
           <p className="text-red-500 text-sm">{error}</p>
         ) : tags.length === 0 ? (

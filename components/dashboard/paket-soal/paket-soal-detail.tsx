@@ -59,7 +59,7 @@ export default function PaketSoalDetail({ paketId }: PaketSoalDetailProps) {
         if (error.response?.status === 401) {
           toast.error("Sesi Anda telah berakhir. Silakan login kembali.");
           setTimeout(() => {
-            router.push("/auth/login");
+            router.push("/login");
           }, 2000);
         }
       } else if (error instanceof Error) {

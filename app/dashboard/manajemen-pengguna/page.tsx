@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 import ConfirmModal from "@/components/ui/confirm-modal";
 import { AlertTriangle } from "lucide-react";
+import LoadingSpinner from "@/components/ui/loading-spinner";
 
 export default function ManajemenUser() {
   const [users, setUsers] = useState<
@@ -53,7 +54,7 @@ export default function ManajemenUser() {
         toast.error(errorMessage);
 
         if (axiosError.response?.status === 401) {
-          setTimeout(() => router.push("/auth/login"), 2000);
+          setTimeout(() => router.push("/login"), 2000);
         }
       } else {
         toast.error("Terjadi kesalahan tidak dikenal");
@@ -178,177 +179,183 @@ export default function ManajemenUser() {
         </p>
 
         {loading ? (
-          <p className="text-sm text-gray-500">Memuat pengguna...</p>
+          <LoadingSpinner message="Memuat pengguna..." />
         ) : error ? (
           <p className="text-red-500 text-sm">{error}</p>
-        ) : users.length === 0 ? (
-          <p className="text-sm text-gray-500">Tidak ada pengguna terdaftar.</p>
         ) : (
-          <div className="mt-6 overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-3 px-4">Email</th>
-                  <th className="text-left py-3 px-4">Nama Lengkap</th>
-                  <th className="text-left py-3 px-4">Role</th>
-                  <th className="text-left py-3 px-4">Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((user) => (
-                  <tr key={user.user_id} className="border-b">
-                    {editingUser.id === user.user_id ? (
-                      <>
-                        <td className="py-3 px-4">
-                          <input
-                            type="email"
-                            value={editingUser.email}
-                            onChange={(e) =>
-                              setEditingUser({
-                                ...editingUser,
-                                email: e.target.value,
-                              })
-                            }
-                            className="border p-1 w-full"
-                          />
-                        </td>
-                        <td className="py-3 px-4">
-                          <input
-                            type="text"
-                            value={editingUser.fullname}
-                            onChange={(e) =>
-                              setEditingUser({
-                                ...editingUser,
-                                fullname: e.target.value,
-                              })
-                            }
-                            className="border p-1 w-full"
-                          />
-                        </td>
-                        <td className="py-3 px-4">
-                          <select
-                            value={editingUser.role_id}
-                            onChange={(e) =>
-                              setEditingUser({
-                                ...editingUser,
-                                role_id: Number(e.target.value),
-                              })
-                            }
-                            className="border p-1 w-full"
-                          >
-                            <option value={1}>Admin</option>
-                            <option value={2}>User</option>
-                          </select>
-                        </td>
-                        <td className="py-3 px-4 flex gap-2">
-                          <button
-                            onClick={handleUpdateUser}
-                            className="text-green-500 hover:text-green-700"
-                          >
-                            Simpan
-                          </button>
-                          <button
-                            onClick={() =>
-                              setEditingUser({
-                                id: null,
-                                email: "",
-                                fullname: "",
-                                role_id: 2,
-                              })
-                            }
-                            className="text-gray-500 hover:text-gray-700"
-                          >
-                            Batal
-                          </button>
-                        </td>
-                      </>
-                    ) : (
-                      <>
-                        <td className="py-3 px-4">{user.email}</td>
-                        <td className="py-3 px-4">{user.fullname}</td>
-                        <td className="py-3 px-4">
-                          {user.role_id === 1 ? "Admin" : "User"}
-                        </td>
-                        <td className="py-3 px-4 flex gap-2">
-                          <button
-                            onClick={() =>
-                              setEditingUser({
-                                id: user.user_id,
-                                email: user.email,
-                                fullname: user.fullname,
-                                role_id: user.role_id,
-                              })
-                            }
-                            className="text-blue-500 hover:text-blue-700"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() =>
-                              confirmDeleteUser(user.user_id, user.email)
-                            }
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            Hapus
-                          </button>
-                        </td>
-                      </>
-                    )}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+          <>
+            {users.length === 0 ? (
+              <p className="text-sm text-gray-500 mt-6">
+                Tidak ada pengguna terdaftar.
+              </p>
+            ) : (
+              <div className="mt-6 overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-3 px-4">Email</th>
+                      <th className="text-left py-3 px-4">Nama Lengkap</th>
+                      <th className="text-left py-3 px-4">Role</th>
+                      <th className="text-left py-3 px-4">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.map((user) => (
+                      <tr key={user.user_id} className="border-b">
+                        {editingUser.id === user.user_id ? (
+                          <>
+                            <td className="py-3 px-4">
+                              <input
+                                type="email"
+                                value={editingUser.email}
+                                onChange={(e) =>
+                                  setEditingUser({
+                                    ...editingUser,
+                                    email: e.target.value,
+                                  })
+                                }
+                                className="border p-1 w-full"
+                              />
+                            </td>
+                            <td className="py-3 px-4">
+                              <input
+                                type="text"
+                                value={editingUser.fullname}
+                                onChange={(e) =>
+                                  setEditingUser({
+                                    ...editingUser,
+                                    fullname: e.target.value,
+                                  })
+                                }
+                                className="border p-1 w-full"
+                              />
+                            </td>
+                            <td className="py-3 px-4">
+                              <select
+                                value={editingUser.role_id}
+                                onChange={(e) =>
+                                  setEditingUser({
+                                    ...editingUser,
+                                    role_id: Number(e.target.value),
+                                  })
+                                }
+                                className="border p-1 w-full"
+                              >
+                                <option value={1}>Admin</option>
+                                <option value={2}>User</option>
+                              </select>
+                            </td>
+                            <td className="py-3 px-4 flex gap-2">
+                              <button
+                                onClick={handleUpdateUser}
+                                className="text-green-500 hover:text-green-700"
+                              >
+                                Simpan
+                              </button>
+                              <button
+                                onClick={() =>
+                                  setEditingUser({
+                                    id: null,
+                                    email: "",
+                                    fullname: "",
+                                    role_id: 2,
+                                  })
+                                }
+                                className="text-gray-500 hover:text-gray-700"
+                              >
+                                Batal
+                              </button>
+                            </td>
+                          </>
+                        ) : (
+                          <>
+                            <td className="py-3 px-4">{user.email}</td>
+                            <td className="py-3 px-4">{user.fullname}</td>
+                            <td className="py-3 px-4">
+                              {user.role_id === 1 ? "Admin" : "User"}
+                            </td>
+                            <td className="py-3 px-4 flex gap-2">
+                              <button
+                                onClick={() =>
+                                  setEditingUser({
+                                    id: user.user_id,
+                                    email: user.email,
+                                    fullname: user.fullname,
+                                    role_id: user.role_id,
+                                  })
+                                }
+                                className="text-blue-500 hover:text-blue-700"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() =>
+                                  confirmDeleteUser(user.user_id, user.email)
+                                }
+                                className="text-red-500 hover:text-red-700"
+                              >
+                                Hapus
+                              </button>
+                            </td>
+                          </>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
-        <div className="mt-6 space-y-4">
-          <h2 className="text-lg font-medium">Tambah Pengguna Baru</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <input
-              type="email"
-              placeholder="Email"
-              value={newUser.email}
-              onChange={(e) =>
-                setNewUser({ ...newUser, email: e.target.value })
-              }
-              className="border p-2 rounded"
-            />
-            <input
-              type="text"
-              placeholder="Nama Lengkap"
-              value={newUser.fullname}
-              onChange={(e) =>
-                setNewUser({ ...newUser, fullname: e.target.value })
-              }
-              className="border p-2 rounded"
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              value={newUser.password}
-              onChange={(e) =>
-                setNewUser({ ...newUser, password: e.target.value })
-              }
-              className="border p-2 rounded"
-            />
-            <select
-              value={newUser.role_id}
-              onChange={(e) =>
-                setNewUser({ ...newUser, role_id: Number(e.target.value) })
-              }
-              className="border p-2 rounded"
-            >
-              <option value={1}>Admin</option>
-              <option value={2}>User</option>
-            </select>
-          </div>
-          <button
-            onClick={handleAddUser}
-            className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800"
-          >
-            Tambah Pengguna
-          </button>
-        </div>
+            <div className="mt-6 space-y-4">
+              <h2 className="text-lg font-medium">Tambah Pengguna Baru</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={newUser.email}
+                  onChange={(e) =>
+                    setNewUser({ ...newUser, email: e.target.value })
+                  }
+                  className="border p-2 rounded"
+                />
+                <input
+                  type="text"
+                  placeholder="Nama Lengkap"
+                  value={newUser.fullname}
+                  onChange={(e) =>
+                    setNewUser({ ...newUser, fullname: e.target.value })
+                  }
+                  className="border p-2 rounded"
+                />
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={newUser.password}
+                  onChange={(e) =>
+                    setNewUser({ ...newUser, password: e.target.value })
+                  }
+                  className="border p-2 rounded"
+                />
+                <select
+                  value={newUser.role_id}
+                  onChange={(e) =>
+                    setNewUser({ ...newUser, role_id: Number(e.target.value) })
+                  }
+                  className="border p-2 rounded"
+                >
+                  <option value={1}>Admin</option>
+                  <option value={2}>User</option>
+                </select>
+              </div>
+              <button
+                onClick={handleAddUser}
+                className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800"
+              >
+                Tambah Pengguna
+              </button>
+            </div>
+          </>
+        )}
       </div>
 
       {showDeleteModal && userToDelete && (

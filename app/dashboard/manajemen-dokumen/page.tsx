@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { FileText, Upload, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-
+import LoadingSpinner from "@/components/ui/loading-spinner";
 interface UserData {
   user_id: number;
   fullname: string;
@@ -29,7 +29,7 @@ export default function ManajemenDokumen() {
 
         if (!token) {
           console.error("No auth token found");
-          router.push("/auth/login");
+          router.push("/login");
           return;
         }
 
@@ -50,7 +50,7 @@ export default function ManajemenDokumen() {
           if (err.response?.status === 401) {
             localStorage.removeItem("token");
             localStorage.removeItem("user");
-            router.push("/auth/login");
+            router.push("/login");
           }
         }
       } finally {
@@ -171,7 +171,7 @@ export default function ManajemenDokumen() {
           <h3 className="text-lg font-medium mb-4">Dokumen Yang Tersedia</h3>
 
           {loading || userLoading ? (
-            <p className="text-sm text-gray-500">Memuat dokumen...</p>
+            <LoadingSpinner message="Memuat dokumen..." />
           ) : error ? (
             <p className="text-red-500 text-sm">{error}</p>
           ) : documents.length === 0 ? (

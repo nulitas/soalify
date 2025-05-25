@@ -6,6 +6,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import ChangePasswordSection from "@/components/dashboard/change-password";
+import LoadingSpinner from "@/components/ui/loading-spinner";
 interface UserData {
   user_id: number;
   fullname: string;
@@ -42,7 +43,7 @@ export default function Pengaturan() {
 
         if (!token) {
           console.error("No auth token found");
-          router.push("/auth/login");
+          router.push("/login");
           return;
         }
 
@@ -72,7 +73,7 @@ export default function Pengaturan() {
             console.error("Authentication failed. Token may be expired.");
             localStorage.removeItem("token");
             localStorage.removeItem("user");
-            router.push("/auth/login");
+            router.push("/login");
           } else {
             setError(error.response?.data?.message || error.message);
           }
@@ -115,7 +116,7 @@ export default function Pengaturan() {
       const token = localStorage.getItem("token");
 
       if (!token) {
-        router.push("/auth/login");
+        router.push("/login");
         return;
       }
 
@@ -157,10 +158,7 @@ export default function Pengaturan() {
       </h1>
 
       {loading ? (
-        <div className="text-center py-8">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-middle"></div>
-          <p className="mt-2">Memuat data...</p>
-        </div>
+        <LoadingSpinner message="Memuat data pengguna..." />
       ) : error ? (
         <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4 mb-6">
           <p>Error: {error}</p>

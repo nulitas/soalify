@@ -31,7 +31,7 @@ export default function DashboardLayout({
     if (loading) return;
 
     if (!user) {
-      router.push("/auth/login");
+      router.push("/login");
     }
   }, [user, loading, router]);
 

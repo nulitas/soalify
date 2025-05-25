@@ -4,6 +4,7 @@ import axios from "axios";
 import { useState } from "react";
 import QuestionGenerator from "@/components/dashboard/question-generator";
 import GeneratedQuestions from "@/components/dashboard/generated-questions";
+import LoadingSpinner from "@/components/ui/loading-spinner";
 
 const exampleTexts = [
   {
@@ -34,6 +35,7 @@ export default function MembuatSoal() {
     method: string;
   } | null>(null);
 
+  const [isLoading, setIsLoading] = useState(false); // Add loading state
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const handleGenerateQuestions = async (data: {
@@ -41,6 +43,8 @@ export default function MembuatSoal() {
     num_questions: number;
     use_rag: boolean;
   }) => {
+    setIsLoading(true);
+    setGeneratedContent(null);
     try {
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/questions/generate`,
@@ -54,6 +58,8 @@ export default function MembuatSoal() {
     } catch (error) {
       console.error("Error generating questions:", error);
       alert("Failed to generate questions. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -61,7 +67,6 @@ export default function MembuatSoal() {
     navigator.clipboard.writeText(text).then(
       () => {
         setCopiedId(id);
-
         setTimeout(() => {
           setCopiedId(null);
         }, 2000);
@@ -92,14 +97,18 @@ export default function MembuatSoal() {
             defaultQuestionCount={1}
           />
 
-          {generatedContent && (
-            <div className="mt-4 md:mt-6">
+          {/* Display loader or results */}
+          <div className="mt-4 md:mt-6">
+            {isLoading && (
+              <LoadingSpinner message="Sedang membuat soal, mohon tunggu..." />
+            )}
+            {generatedContent && !isLoading && (
               <GeneratedQuestions
                 result={generatedContent.result}
                 method={generatedContent.method}
               />
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         <div className="space-y-4 md:space-y-6">
