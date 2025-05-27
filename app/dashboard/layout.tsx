@@ -7,6 +7,7 @@ import { useAuth } from "@/context/auth-context";
 
 import DashboardSidebar from "@/components/ui/dashboard-sidebar";
 import DashboardHeader from "@/components/ui/dashboard-header";
+import LoadingSpinner from "@/components/ui/loading-spinner";
 
 export type DashboardTab =
   | "membuat-soal"
@@ -38,7 +39,7 @@ export default function DashboardLayout({
   if (loading || !user) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-[#f9f7f3]">
-        <div className="font-medium text-lg">Loading...</div>
+        <LoadingSpinner message="Memuat..." />
       </div>
     );
   }

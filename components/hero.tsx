@@ -37,13 +37,6 @@ export default function Hero() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         <div className="max-w-3xl">
-          {/* <div className="mb-6">
-            <div className="inline-flex items-center px-4 py-2 bg-gray-50 rounded-full text-sm text-gray-600 mb-6">
-              <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
-              Telah dipercaya 500+ guru di Indonesia
-            </div>
-          </div> */}
-
           <h1 className="text-4xl md:text-[64px] font-semibold leading-[1.1] mb-8 title-font">
             Platform Cerdas untuk Membuat {""}
             <br></br>
@@ -63,7 +56,7 @@ export default function Hero() {
           <div className="flex flex-col sm:flex-row gap-4 mb-8">
             <Link
               href=" /register"
-              className="px-8 py-3 bg-black text-white rounded-full hover:bg-gray-800 transition-all duration-200 hover:scale-105 hover:shadow-lg text-sm button-font"
+              className="px-8 py-3 bg-black text-white rounded-full hover:bg-gray-800 transition-all duration-200 hover:scale-105 hover:shadow-lg text-sm button-font text-center"
             >
               Daftar Sekarang
             </Link>
@@ -103,7 +96,7 @@ export default function Hero() {
               </div>
             </div>
             <div className="absolute -bottom-4 -right-4 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-medium">
-              Soal Generated!
+              Soal berhasil dibuat!
             </div>
           </div>
         </div>

@@ -31,7 +31,7 @@ export default function Services() {
   return (
     <section
       id="tentang"
-      className="section-bg px-4 md:px-8 py-20 relative overflow-hidden"
+      className="bg-gray-50 px-4 md:px-8 py-20 relative overflow-hidden"
     >
       {/* Background pattern */}
       <div className="absolute inset-0 opacity-5">
@@ -82,25 +82,6 @@ export default function Services() {
             </div>
           ))}
         </div>
-
-        {/* <div className="mt-16 text-center">
-          <div className="inline-flex items-center space-x-8 bg-white rounded-full px-8 py-4 shadow-sm border">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-black">500+</div>
-              <div className="text-sm text-gray-500">Guru Pengguna</div>
-            </div>
-            <div className="w-px h-8 bg-gray-200"></div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-black">10K+</div>
-              <div className="text-sm text-gray-500">Soal Dibuat</div>
-            </div>
-            <div className="w-px h-8 bg-gray-200"></div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-black">98%</div>
-              <div className="text-sm text-gray-500">Kepuasan</div>
-            </div>
-          </div>
-        </div> */}
       </div>
     </section>
   );

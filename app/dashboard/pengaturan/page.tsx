@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { User, Mail, Edit, X, Check } from "lucide-react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import { toast } from "react-hot-toast";
+import { toast, Toaster } from "react-hot-toast";
 import ChangePasswordSection from "@/components/dashboard/change-password";
 import LoadingSpinner from "@/components/ui/loading-spinner";
+import ErrorMessage from "@/components/ui/error-message";
 interface UserData {
   user_id: number;
   fullname: string;
@@ -34,25 +35,54 @@ export default function Pengaturan() {
     return role ? role.role_name : `Role ${roleId}`;
   };
 
+  const handleApiError = useCallback(
+    (err: unknown, contextMessage: string) => {
+      let displayMessage = contextMessage;
+      let isSessionExpired = false;
+
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) {
+          displayMessage =
+            "Sesi Anda telah berakhir. Anda akan dialihkan ke halaman login.";
+          isSessionExpired = true;
+          toast.error("Sesi Anda telah berakhir.");
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          setTimeout(() => {
+            router.push("/login");
+          }, 2500);
+        } else {
+          displayMessage = err.response?.data?.detail || contextMessage;
+        }
+      }
+
+      setError(displayMessage);
+      if (!isSessionExpired) {
+        toast.error(displayMessage);
+      }
+      console.error(`Error: ${contextMessage}`, err);
+    },
+    [router]
+  );
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-
+        setError(null);
         const token = localStorage.getItem("token");
-
         if (!token) {
-          console.error("No auth token found");
-          router.push("/login");
+          handleApiError(
+            new Error("Token tidak ditemukan."),
+            "Autentikasi diperlukan. Silakan login kembali."
+          );
+          if (!localStorage.getItem("token")) {
+            router.push("/login");
+          }
           return;
         }
 
-        const config = {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        };
-
+        const config = { headers: { Authorization: `Bearer ${token}` } };
         const [rolesResponse, userResponse] = await Promise.all([
           axios.get<RoleData[]>(
             `${process.env.NEXT_PUBLIC_API_URL}/users/roles/`,
@@ -67,32 +97,16 @@ export default function Pengaturan() {
         setRoles(rolesResponse.data);
         setUserData(userResponse.data);
         setEditedUserData(userResponse.data);
-      } catch (error) {
-        if (axios.isAxiosError(error)) {
-          if (error.response?.status === 401) {
-            console.error("Authentication failed. Token may be expired.");
-            localStorage.removeItem("token");
-            localStorage.removeItem("user");
-            router.push("/login");
-          } else {
-            setError(error.response?.data?.message || error.message);
-          }
-        } else {
-          setError("An unknown error occurred");
-        }
-        console.error("Error fetching data:", error);
+      } catch (err) {
+        handleApiError(err, "Gagal memuat data pengguna.");
       } finally {
         setLoading(false);
       }
     };
-
     fetchData();
-  }, [router]);
+  }, [router, handleApiError]);
 
-  const handleEditProfile = () => {
-    setEditingProfile(true);
-  };
-
+  const handleEditProfile = () => setEditingProfile(true);
   const handleCancelEdit = () => {
     setEditingProfile(false);
     setEditedUserData(userData);
@@ -101,51 +115,39 @@ export default function Pengaturan() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     if (editedUserData) {
-      setEditedUserData({
-        ...editedUserData,
-        [name]: value,
-      });
+      setEditedUserData({ ...editedUserData, [name]: value });
     }
   };
 
   const saveProfile = async () => {
     if (!editedUserData || !userData) return;
-
+    const loadingToastId = toast.loading("Menyimpan profil...");
+    setSaving(true);
+    setError(null);
     try {
-      setSaving(true);
       const token = localStorage.getItem("token");
-
       if (!token) {
-        router.push("/login");
+        handleApiError(
+          new Error("Token tidak ditemukan."),
+          "Autentikasi diperlukan untuk menyimpan."
+        );
+        if (!localStorage.getItem("token")) {
+          router.push("/login");
+        }
         return;
       }
-
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-
+      const config = { headers: { Authorization: `Bearer ${token}` } };
       await axios.put(
         `${process.env.NEXT_PUBLIC_API_URL}/users/${userData.user_id}`,
-        {
-          fullname: editedUserData.fullname,
-          email: editedUserData.email,
-        },
+        { fullname: editedUserData.fullname, email: editedUserData.email },
         config
       );
-
       setUserData(editedUserData);
       setEditingProfile(false);
-      toast.success("Profil berhasil diperbarui");
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        toast.error(
-          error.response?.data?.message || "Gagal memperbarui profil"
-        );
-      } else {
-        toast.error("Terjadi kesalahan saat memperbarui profil");
-      }
+      toast.success("Profil berhasil diperbarui", { id: loadingToastId });
+    } catch (err) {
+      toast.dismiss(loadingToastId);
+      handleApiError(err, "Gagal memperbarui profil.");
     } finally {
       setSaving(false);
     }
@@ -153,18 +155,30 @@ export default function Pengaturan() {
 
   return (
     <div>
+      <Toaster
+        toastOptions={{
+          success: {
+            style: { background: "#10B981", color: "white", fontWeight: "500" },
+          },
+          error: {
+            style: { background: "#EF4444", color: "white", fontWeight: "500" },
+          },
+          loading: {
+            style: { background: "#3B82F6", color: "white", fontWeight: "500" },
+          },
+        }}
+      />
       <h1 className="text-2xl md:text-3xl font-medium title-font mb-6">
         Pengaturan
       </h1>
 
       {loading ? (
-        <LoadingSpinner message="Memuat data pengguna..." />
-      ) : error ? (
-        <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4 mb-6">
-          <p>Error: {error}</p>
-          <p>Gagal memuat data pengguna. Silakan coba lagi nanti.</p>
+        <div className="flex justify-center items-center py-16">
+          <LoadingSpinner message="Memuat data pengguna..." />
         </div>
-      ) : (
+      ) : error ? (
+        <ErrorMessage message={error} />
+      ) : userData ? (
         <>
           <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-4 md:p-6 mb-6">
             <div className="flex justify-between items-center mb-4">
@@ -187,7 +201,7 @@ export default function Pengaturan() {
                   <button
                     onClick={saveProfile}
                     disabled={saving}
-                    className="flex items-center gap-1 text-sm px-3 py-1 bg-black text-white rounded-md hover:bg-gray-800 transition-colors"
+                    className="flex items-center gap-1 text-sm px-3 py-1 bg-black text-white rounded-md hover:bg-gray-800 transition-colors disabled:opacity-50"
                   >
                     {saving ? (
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -206,7 +220,7 @@ export default function Pengaturan() {
                   <User className="w-10 h-10 text-gray-500" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">{userData?.fullname}</p>
+                  <p className="text-sm text-gray-500">{userData.fullname}</p>
                 </div>
               </div>
 
@@ -247,17 +261,16 @@ export default function Pengaturan() {
                     value={
                       editedUserData ? getRoleName(editedUserData.role_id) : ""
                     }
-                    className="w-full px-4 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-black"
+                    className="w-full px-4 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-black bg-gray-50"
                     disabled
                   />
                 </div>
               </div>
             </div>
           </div>
-
-          {userData && <ChangePasswordSection userId={userData.user_id} />}
+          <ChangePasswordSection userId={userData.user_id} />
         </>
-      )}
+      ) : null}
     </div>
   );
 }

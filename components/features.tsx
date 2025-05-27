@@ -24,7 +24,7 @@ export default function Features() {
     {
       title: "Membuat Soal dan Jawaban",
       description:
-        'Guru cukup mengisi topik atau konteks materi yang ingin dibuatkan soal, misalnya "Materi Matematika tentang Pecahan". Setelah itu, Soalify akan langsung membuatkan soal beserta jawabannya sesuai materi yang telah diunggah oleh admin sebelumnya.',
+        'Guru cukup mengisi topik atau konteks materi yang ingin dibuatkan soal, misalnya "Materi Bahasa Indonesia". Setelah itu, Soalify akan langsung membuatkan soal beserta jawabannya sesuai materi yang telah diunggah oleh admin sebelumnya.',
       step: "04",
       side: "right",
     },
@@ -76,15 +76,16 @@ export default function Features() {
                         <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
                           <span className="text-white text-sm">📄</span>
                         </div>
-                        <span className="font-medium">Upload Materi</span>
+                        <span className="font-medium">Materi Pelajaran</span>
                       </div>
                       <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
                         <div className="text-4xl mb-4">📁</div>
                         <p className="text-gray-600">
-                          Drag & drop PDF files here
+                          Seret dan lepas file PDF materi pelajaran di sini atau
+                          klik tombol di bawah untuk memilih file dari perangkat
                         </p>
                         <button className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg">
-                          Browse Files
+                          Pilih File
                         </button>
                       </div>
                     </div>
@@ -95,28 +96,30 @@ export default function Features() {
                       <div className="flex items-center justify-between mb-6">
                         <h4 className="font-medium">Kelola Pengguna</h4>
                         <button className="px-3 py-1 bg-green-500 text-white rounded text-sm">
-                          + Tambah User
+                          + Tambah Pengguna
                         </button>
                       </div>
                       <div className="space-y-3">
-                        {["John Doe", "Jane Smith", "Ahmad Rizki"].map(
-                          (name, idx) => (
-                            <div
-                              key={idx}
-                              className="flex items-center justify-between p-3 bg-white rounded border"
-                            >
-                              <span>{name}</span>
-                              <div className="flex space-x-2">
-                                <button className="text-blue-500 text-sm">
-                                  Edit
-                                </button>
-                                <button className="text-red-500 text-sm">
-                                  Delete
-                                </button>
-                              </div>
+                        {[
+                          "Tony Stark",
+                          "Victor Von Doom",
+                          "Wade Winston Wilson",
+                        ].map((name, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-center justify-between p-3 bg-white rounded border"
+                          >
+                            <span>{name}</span>
+                            <div className="flex space-x-2">
+                              <button className="text-blue-500 text-sm">
+                                Ubah
+                              </button>
+                              <button className="text-red-500 text-sm">
+                                Hapus
+                              </button>
                             </div>
-                          )
-                        )}
+                          </div>
+                        ))}
                       </div>
                     </div>
                   )}
@@ -125,23 +128,22 @@ export default function Features() {
                     <div className="space-y-4">
                       <div className="flex items-center justify-between mb-6">
                         <h4 className="font-medium">Data Materi</h4>
-                        <button className="px-3 py-1 bg-red-500 text-white rounded text-sm">
-                          Delete All
-                        </button>
                       </div>
                       <div className="space-y-2">
                         <div className="flex items-center justify-between p-2 bg-red-50 rounded border border-red-200">
                           <span className="text-sm">
-                            Matematika_Kelas_10.pdf
+                            Bahasa_Indonesia_1.pdf
                           </span>
                           <span className="text-red-500 text-xs">
-                            Will be deleted
+                            Akan dihapus
                           </span>
                         </div>
                         <div className="flex items-center justify-between p-2 bg-red-50 rounded border border-red-200">
-                          <span className="text-sm">Fisika_Semester_1.pdf</span>
+                          <span className="text-sm">
+                            Bahasa_Indonesia_2.pdf
+                          </span>
                           <span className="text-red-500 text-xs">
-                            Will be deleted
+                            Akan dihapus
                           </span>
                         </div>
                       </div>
@@ -151,16 +153,16 @@ export default function Features() {
                   {feature.step === "04" && (
                     <div className="space-y-4">
                       <div className="mb-6">
-                        <h4 className="font-medium mb-4">Generate Soal</h4>
+                        <h4 className="font-medium mb-4">Bikin Soal</h4>
                         <div className="space-y-3">
                           <input
                             type="text"
                             placeholder="Masukkan topik materi..."
                             className="w-full p-3 border rounded-lg"
-                            defaultValue="Pecahan dalam Matematika"
+                            defaultValue="Bahasa Indonesia adalah bahasa resmi Republik Indonesia dan bahasa persatuan bangsa Indonesia. "
                           />
                           <button className="w-full p-3 bg-black text-white rounded-lg">
-                            Generate Soal
+                            Bikin Soal
                           </button>
                         </div>
                       </div>

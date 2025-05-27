@@ -6,6 +6,9 @@ import Link from "next/link";
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
+import LoadingSpinner from "@/components/ui/loading-spinner";
+import ViewPaketSoal from "@/components/dashboard/paket-soal/view-paket-soal";
+import EditPaketSoal from "../paket-soal/edit-paket-soal";
 
 interface Tag {
   tag_id: number;
@@ -30,8 +33,6 @@ interface PaketSoalDetailProps {
   paketId: number;
 }
 
-import ViewPaketSoal from "@/components/dashboard/paket-soal/view-paket-soal";
-import EditPaketSoal from "../paket-soal/edit-paket-soal";
 export default function PaketSoalDetail({ paketId }: PaketSoalDetailProps) {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
@@ -116,7 +117,11 @@ export default function PaketSoalDetail({ paketId }: PaketSoalDetailProps) {
   };
 
   if (loading) {
-    return <div className="text-center py-12">Memuat Paket Soal...</div>;
+    return (
+      <div className="flex justify-center items-center py-20">
+        <LoadingSpinner message="Memuat Paket Soal..." />
+      </div>
+    );
   }
 
   if (error || !packageData) {

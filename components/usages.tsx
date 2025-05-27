@@ -19,28 +19,28 @@ export default function Usages() {
       details: [
         "Login dengan akun guru",
         "Akses dashboard",
-        "Pilih fitur generate soal",
+        "Pilih fitur bikin soal",
       ],
     },
     {
       step: "03",
       title: "Input Topik Materi",
       description:
-        "Guru memasukkan topik atau konteks materi yang ingin dibuatkan soal, misalnya 'Matematika Pecahan Kelas 5'.",
+        "Guru memasukkan topik atau konteks materi yang ingin dibuatkan soal, misalnya 'Hukum Newton III'.",
       details: [
         "Ketik topik materi",
-        "Pilih jenis soal",
+        "Pilih untuk menggunakan materi yang sudah diunggah atau bikin baru",
         "Tentukan jumlah soal",
       ],
     },
     {
       step: "04",
-      title: "Sistem Generate Soal",
+      title: "Sistem Bikin Soal",
       description:
         "Soalify secara otomatis membuat soal dan jawaban berdasarkan materi yang telah diunggah dan topik yang diminta.",
       details: [
         "AI memproses request",
-        "Generate soal + jawaban",
+        "Bikin soal + jawaban",
         "Review dan edit jika perlu",
       ],
     },
@@ -115,7 +115,7 @@ export default function Usages() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-white p-6 rounded-lg">
               <h5 className="font-medium mb-2">
-                Berapa lama proses generate soal?
+                Berapa lama proses bikin soal?
               </h5>
               <p className="text-sm text-gray-600">
                 Proses pembuatan soal hanya membutuhkan waktu 10-30 detik

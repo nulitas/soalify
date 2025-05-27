@@ -1,10 +1,13 @@
 "use client";
 
 import axios from "axios";
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { toast, Toaster } from "react-hot-toast";
 import QuestionGenerator from "@/components/dashboard/question-generator";
 import GeneratedQuestions from "@/components/dashboard/generated-questions";
 import LoadingSpinner from "@/components/ui/loading-spinner";
+import ErrorMessage from "@/components/ui/error-message";
 
 const exampleTexts = [
   {
@@ -34,9 +37,40 @@ export default function MembuatSoal() {
     result: { questions: { question: string; answer: string }[] };
     method: string;
   } | null>(null);
-
-  const [isLoading, setIsLoading] = useState(false); // Add loading state
+  const [isLoading, setIsLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  const handleApiError = useCallback(
+    (err: unknown, contextMessage: string) => {
+      let displayMessage = contextMessage;
+      let isSessionExpired = false;
+
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) {
+          displayMessage =
+            "Sesi Anda telah berakhir. Anda akan dialihkan ke halaman login.";
+          isSessionExpired = true;
+          toast.error("Sesi Anda telah berakhir.");
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          setTimeout(() => {
+            router.push("/login");
+          }, 2500);
+        } else {
+          displayMessage = err.response?.data?.detail || contextMessage;
+        }
+      }
+
+      setError(displayMessage);
+      if (!isSessionExpired) {
+        toast.error(displayMessage);
+      }
+      console.error(`Error: ${contextMessage}`, err);
+    },
+    [router]
+  );
 
   const handleGenerateQuestions = async (data: {
     query_text: string;
@@ -45,19 +79,47 @@ export default function MembuatSoal() {
   }) => {
     setIsLoading(true);
     setGeneratedContent(null);
+    setError(null);
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      handleApiError(
+        {
+          response: {
+            status: 401,
+            data: { detail: "Autentikasi diperlukan untuk membuat soal." },
+          },
+        } as {
+          response: {
+            status: number;
+            data: { detail: string };
+          };
+        },
+        "Autentikasi diperlukan untuk membuat soal."
+      );
+      setIsLoading(false);
+      return;
+    }
+
     try {
+      const config = {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      };
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/questions/generate`,
         data,
-        { headers: { "Content-Type": "application/json" } }
+        config
       );
       setGeneratedContent({
         result: response.data.result,
         method: response.data.method,
       });
-    } catch (error) {
-      console.error("Error generating questions:", error);
-      alert("Failed to generate questions. Please try again.");
+      toast.success("Soal berhasil dibuat!");
+    } catch (err) {
+      handleApiError(err, "Gagal membuat soal. Silakan coba lagi.");
     } finally {
       setIsLoading(false);
     }
@@ -67,19 +129,33 @@ export default function MembuatSoal() {
     navigator.clipboard.writeText(text).then(
       () => {
         setCopiedId(id);
+        toast.success("Teks contoh berhasil disalin!");
         setTimeout(() => {
           setCopiedId(null);
         }, 2000);
       },
       (err) => {
         console.error("Failed to copy text: ", err);
-        alert("Gagal menyalin teks.");
+        toast.error("Gagal menyalin teks contoh.");
       }
     );
   };
 
   return (
     <>
+      <Toaster
+        toastOptions={{
+          success: {
+            style: { background: "#10B981", color: "white", fontWeight: "500" },
+          },
+          error: {
+            style: { background: "#EF4444", color: "white", fontWeight: "500" },
+          },
+          loading: {
+            style: { background: "#3B82F6", color: "white", fontWeight: "500" },
+          },
+        }}
+      />
       <div className="mb-6 md:mb-8">
         <h1 className="text-2xl md:text-3xl font-medium title-font mb-2">
           Membuat Soal
@@ -89,20 +165,27 @@ export default function MembuatSoal() {
         </p>
       </div>
 
+      <ErrorMessage message={error} />
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         <div className="lg:col-span-2">
-          <QuestionGenerator
-            onGenerate={handleGenerateQuestions}
-            allowCustomQuestionCount={false}
-            defaultQuestionCount={1}
-          />
+          {!error && (
+            <QuestionGenerator
+              onGenerate={handleGenerateQuestions}
+              allowCustomQuestionCount={false}
+              defaultQuestionCount={1}
+            />
+          )}
 
-          {/* Display loader or results */}
           <div className="mt-4 md:mt-6">
             {isLoading && (
-              <LoadingSpinner message="Sedang membuat soal, mohon tunggu..." />
+              <div className="flex justify-center items-center py-10">
+                {" "}
+                {/* Centered loader */}
+                <LoadingSpinner message="Sedang membuat soal, mohon tunggu..." />
+              </div>
             )}
-            {generatedContent && !isLoading && (
+            {generatedContent && !isLoading && !error && (
               <GeneratedQuestions
                 result={generatedContent.result}
                 method={generatedContent.method}

@@ -10,7 +10,7 @@ import { AlertTriangle } from "lucide-react";
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";
 import LoadingSpinner from "@/components/ui/loading-spinner";
-
+import ErrorMessage from "@/components/ui/error-message";
 interface PaketSoal {
   package_id: number;
   package_name: string;
@@ -33,11 +33,11 @@ interface Tag {
 export default function ManajemenPaketSoal() {
   const [searchQuery, setSearchQuery] = useState("");
   const [paketSoalList, setPaketSoalList] = useState<PaketSoal[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [Loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
   const [availableTags, setAvailableTags] = useState<Tag[]>([]);
-  const [isLoadingTags, setIsLoadingTags] = useState(true);
+  const [LoadingTags, setLoadingTags] = useState(true);
   const [, setUserId] = useState<number | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [packageToDelete, setPackageToDelete] = useState<{
@@ -46,25 +46,47 @@ export default function ManajemenPaketSoal() {
   } | null>(null);
   const router = useRouter();
 
+  const handleApiError = useCallback(
+    (err: unknown, contextMessage: string) => {
+      let displayMessage = contextMessage;
+
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) {
+          const sessionExpiredMsg =
+            "Sesi Anda telah berakhir. Anda akan dialihkan ke halaman login.";
+          setError(sessionExpiredMsg);
+          toast.error("Sesi Anda telah berakhir.");
+          setTimeout(() => {
+            router.push("/login");
+          }, 2500);
+          return;
+        }
+        displayMessage = err.response?.data?.detail || contextMessage;
+      }
+      setError(displayMessage);
+
+      if (!(axios.isAxiosError(err) && err.response?.status === 401)) {
+        toast.error(displayMessage);
+      }
+      console.error(`Error: ${contextMessage}`, err);
+    },
+    [router]
+  );
+
   const fetchPackages = useCallback(
     async (userId: number) => {
       try {
-        setIsLoading(true);
+        setLoading(true);
         setError(null);
         const response = await api.get("/packages/", {
           params: { user_id: userId },
         });
-
-        if (!Array.isArray(response.data)) {
-          throw new Error("Invalid API response format");
-        }
-
         const formattedData = response.data.map(
           (pkg: {
             id: number;
             package_name: string;
-            tags?: { tag_id: number; tag_name: string }[];
-            questions?: { question: string; answer: string }[];
+            tags: { tag_id: number; tag_name: string }[];
+            questions: { question: string; answer: string }[];
           }) => ({
             package_id: pkg.id,
             package_name: pkg.package_name,
@@ -74,90 +96,58 @@ export default function ManajemenPaketSoal() {
         );
         setPaketSoalList(formattedData);
       } catch (err) {
-        console.error("Failed to fetch packages:", err);
-        setError("Gagal memuat data paket soal. Silakan coba lagi.");
-
-        if (axios.isAxiosError(err)) {
-          console.log("API Error:", err.response?.data);
-
-          if (axios.isAxiosError(err) && err.response?.status === 401) {
-            toast.error("Sesi Anda telah berakhir. Silakan login kembali.");
-            setTimeout(() => {
-              router.push("/login");
-            }, 2000);
-          }
-        }
+        handleApiError(err, "Gagal memuat paket soal.");
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     },
-    [router]
+    [handleApiError]
   );
 
-  const fetchAllTags = async (userId: number) => {
+  const fetchAllTags = useCallback(async (userId: number) => {
     try {
-      setIsLoadingTags(true);
+      setLoadingTags(true);
+
       const response = await api.get("/tags/", {
         params: { user_id: userId },
       });
-
-      const mappedTags = response.data.map(
-        (tag: { tag_id: number; tag_name: string; user_id?: number }) => ({
-          tag_id: tag.tag_id,
-          tag_name: tag.tag_name,
-          user_id: tag.user_id,
-        })
-      );
-      setAvailableTags(mappedTags);
+      setAvailableTags(response.data);
     } catch (err) {
-      console.error("Failed to fetch tags:", err);
       toast.error("Gagal memuat data tag.");
+      console.error("Error fetching tags:", err);
     } finally {
-      setIsLoadingTags(false);
+      setLoadingTags(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setLoading(true);
+        setError(null);
         const token = localStorage.getItem("token");
         if (!token) {
-          setError("Anda belum login.");
-          toast.error("Anda belum login. Silakan login terlebih dahulu.");
-          setIsLoading(false);
+          setError("Anda belum login. Silakan login terlebih dahulu.");
+          setLoading(false);
+
           return;
         }
-
         const userRes = await axios.get(
           `${process.env.NEXT_PUBLIC_API_URL}/users/me`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
-
         const userId = userRes.data.user_id;
         setUserId(userId);
 
         await Promise.all([fetchPackages(userId), fetchAllTags(userId)]);
       } catch (err) {
-        console.error("Gagal mengambil user:", err);
-        setError("Gagal mengambil data pengguna.");
-        toast.error("Gagal mengambil data pengguna. Silakan coba lagi nanti.");
-        setIsLoading(false);
-
-        if (axios.isAxiosError(err) && err.response?.status === 401) {
-          toast.error("Sesi Anda telah berakhir. Silakan login kembali.");
-          setTimeout(() => {
-            router.push("/login");
-          }, 2000);
-        }
+        handleApiError(err, "Gagal memuat data pengguna.");
+      } finally {
+        setLoading(false);
       }
     };
-
     fetchData();
-  }, [fetchPackages, router]);
+  }, [fetchPackages, fetchAllTags, handleApiError]);
 
   const confirmDeletePackage = (packageId: number, packageName: string) => {
     setPackageToDelete({ id: packageId, name: packageName });
@@ -166,29 +156,18 @@ export default function ManajemenPaketSoal() {
 
   const handleDeletePackage = async () => {
     if (!packageToDelete) return;
-
     const loadingToast = toast.loading("Menghapus paket soal...");
-
     try {
       await api.delete(`/packages/${packageToDelete.id}`);
       setPaketSoalList((prev) =>
         prev.filter((pkg) => pkg.package_id !== packageToDelete.id)
       );
+      setError(null);
       toast.success("Paket soal berhasil dihapus", { id: loadingToast });
     } catch (err) {
-      console.error("Gagal menghapus paket soal:", err);
+      toast.dismiss(loadingToast);
 
-      if (err && typeof err === "object" && "response" in err) {
-        const axiosError = err as { response?: { data?: { detail?: string } } };
-        const errorMessage =
-          axiosError.response?.data?.detail || "Gagal menghapus paket soal";
-        setError(errorMessage);
-        toast.error(errorMessage, { id: loadingToast });
-      } else {
-        toast.error("Gagal menghapus paket soal. Silakan coba lagi.", {
-          id: loadingToast,
-        });
-      }
+      handleApiError(err, "Gagal menghapus paket soal.");
     } finally {
       setShowDeleteModal(false);
       setPackageToDelete(null);
@@ -216,11 +195,9 @@ export default function ManajemenPaketSoal() {
     const matchesSearch = pkg.package_name
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
-
     const matchesTags =
       selectedTags.length === 0 ||
       pkg.tags.some((tag) => selectedTags.includes(tag.tag_id));
-
     return matchesSearch && matchesTags;
   });
 
@@ -229,25 +206,13 @@ export default function ManajemenPaketSoal() {
       <Toaster
         toastOptions={{
           success: {
-            style: {
-              background: "#10B981",
-              color: "white",
-              fontWeight: "500",
-            },
+            style: { background: "#10B981", color: "white", fontWeight: "500" },
           },
           error: {
-            style: {
-              background: "#EF4444",
-              color: "white",
-              fontWeight: "500",
-            },
+            style: { background: "#EF4444", color: "white", fontWeight: "500" },
           },
           loading: {
-            style: {
-              background: "#3B82F6",
-              color: "white",
-              fontWeight: "500",
-            },
+            style: { background: "#3B82F6", color: "white", fontWeight: "500" },
           },
         }}
       />
@@ -264,12 +229,6 @@ export default function ManajemenPaketSoal() {
         </Link>
       </div>
 
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
-        </div>
-      )}
-
       <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-4 md:p-6">
         <div className="mb-6">
           <div className="relative mb-4">
@@ -281,16 +240,15 @@ export default function ManajemenPaketSoal() {
               className="w-full px-4 py-2 pl-10 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-black"
             />
           </div>
-
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Filter berdasarkan tag:
             </label>
             <div className="flex flex-wrap gap-2 mb-3">
-              {isLoadingTags ? (
-                <div className="py-2">
-                  <LoadingSpinner message="Memuat tag..." />
-                </div>
+              {LoadingTags ? (
+                <p className="text-sm text-gray-500 text-center py-4">
+                  Memuat tag...
+                </p>
               ) : (
                 <select
                   className="px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-black"
@@ -314,7 +272,6 @@ export default function ManajemenPaketSoal() {
                 </select>
               )}
             </div>
-
             {selectedTags.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-2">
                 {selectedTags.map((tagId) => (
@@ -342,60 +299,69 @@ export default function ManajemenPaketSoal() {
           </div>
         </div>
 
-        {isLoading ? (
+        <ErrorMessage message={error} />
+
+        {Loading ? (
           <div className="flex justify-center items-center py-16">
             <LoadingSpinner message="Memuat paket soal..." />
           </div>
-        ) : filteredPackages.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500 mb-4">
-              Tidak ada paket soal yang ditemukan.
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredPackages.map((paket) => (
-              <div
-                key={paket.package_id}
-                className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer block relative"
-              >
-                <Link
-                  href={`/dashboard/manajemen-paket-soal/${paket.package_id}`}
-                >
-                  <h3 className="font-medium mb-3">{paket.package_name}</h3>
-                  <div className="flex flex-wrap gap-1 mb-3">
-                    {paket.tags.length > 0 ? (
-                      paket.tags.map((tag) => (
-                        <span
-                          key={`${paket.package_id}-${tag.tag_id}`}
-                          className="bg-gray-100 text-xs px-2 py-0.5 rounded-md"
-                        >
-                          {tag.tag_name}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-gray-400 text-xs">
-                        Tidak ada tag
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex justify-between items-center text-sm text-gray-500">
-                    <span>{paket.questions.length} soal</span>
-                  </div>
-                </Link>
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    confirmDeletePackage(paket.package_id, paket.package_name);
-                  }}
-                  className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-md hover:bg-red-600 transition-colors"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+        ) : !error ? (
+          <>
+            {filteredPackages.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-500 mb-4">
+                  Tidak ada paket soal yang ditemukan.
+                </p>
               </div>
-            ))}
-          </div>
-        )}
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredPackages.map((paket) => (
+                  <div
+                    key={paket.package_id}
+                    className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer block relative"
+                  >
+                    <Link
+                      href={`/dashboard/manajemen-paket-soal/${paket.package_id}`}
+                    >
+                      <h3 className="font-medium mb-3">{paket.package_name}</h3>
+                      <div className="flex flex-wrap gap-1 mb-3">
+                        {paket.tags.length > 0 ? (
+                          paket.tags.map((tag) => (
+                            <span
+                              key={`${paket.package_id}-${tag.tag_id}`}
+                              className="bg-gray-100 text-xs px-2 py-0.5 rounded-md"
+                            >
+                              {tag.tag_name}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-gray-400 text-xs">
+                            Tidak ada tag
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex justify-between items-center text-sm text-gray-500">
+                        <span>{paket.questions.length} soal</span>
+                      </div>
+                    </Link>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        confirmDeletePackage(
+                          paket.package_id,
+                          paket.package_name
+                        );
+                      }}
+                      className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-md hover:bg-red-600 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        ) : null}
       </div>
 
       {showDeleteModal && packageToDelete && (

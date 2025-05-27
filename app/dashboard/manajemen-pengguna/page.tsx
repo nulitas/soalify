@@ -7,7 +7,7 @@ import toast, { Toaster } from "react-hot-toast";
 import ConfirmModal from "@/components/ui/confirm-modal";
 import { AlertTriangle } from "lucide-react";
 import LoadingSpinner from "@/components/ui/loading-spinner";
-
+import ErrorMessage from "@/components/ui/error-message";
 export default function ManajemenUser() {
   const [users, setUsers] = useState<
     {
@@ -24,7 +24,7 @@ export default function ManajemenUser() {
     password: "",
     role_id: 2,
   });
-  const [error, setError] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [editingUser, setEditingUser] = useState<{
     id: number | null;
@@ -39,25 +39,31 @@ export default function ManajemenUser() {
   } | null>(null);
   const router = useRouter();
 
-  const handleError = useCallback(
-    (err: unknown) => {
-      if (typeof err === "object" && err !== null && "response" in err) {
+  const handleApiError = useCallback(
+    (err: unknown, contextMessage: string) => {
+      if (err && typeof err === "object" && "response" in err) {
         const axiosError = err as {
-          response?: {
-            data?: { detail?: string };
-            status?: number;
-          };
+          response?: { data?: { detail?: string }; status?: number };
         };
-        const errorMessage =
-          axiosError.response?.data?.detail || "Terjadi kesalahan";
-        setError(errorMessage);
-        toast.error(errorMessage);
 
         if (axiosError.response?.status === 401) {
-          setTimeout(() => router.push("/login"), 2000);
+          const sessionExpiredMsg =
+            "Sesi Anda telah berakhir. Anda akan dialihkan ke halaman login.";
+          setError(sessionExpiredMsg);
+          toast.error("Sesi Anda telah berakhir.");
+          setTimeout(() => {
+            router.push("/login");
+          }, 2500);
+          return;
         }
+
+        const errorMessage =
+          axiosError.response?.data?.detail || contextMessage;
+        setError(errorMessage);
+        toast.error(errorMessage);
       } else {
-        toast.error("Terjadi kesalahan tidak dikenal");
+        setError(contextMessage);
+        toast.error(contextMessage);
       }
     },
     [router]
@@ -66,6 +72,8 @@ export default function ManajemenUser() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setLoading(true);
+        setError(null);
         const currentUser = await api.get("/users/me");
         if (currentUser.data.role_id !== 1) {
           toast.error(
@@ -74,35 +82,33 @@ export default function ManajemenUser() {
           router.push("/dashboard");
           return;
         }
-
         const response = await api.get("/users/?skip=0&limit=100");
         setUsers(response.data);
       } catch (err) {
-        handleError(err);
+        handleApiError(err, "Gagal memuat data pengguna.");
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [router, handleError]);
+  }, [router, handleApiError]);
 
   const handleAddUser = async () => {
     if (!newUser.email || !newUser.fullname || !newUser.password) {
       toast.error("Harap isi semua bidang");
       return;
     }
-
     const loadingToast = toast.loading("Menambahkan pengguna...");
-
     try {
       const response = await api.post("/users/register", newUser);
       setUsers((prev) => [...prev, response.data]);
       setNewUser({ email: "", fullname: "", password: "", role_id: 2 });
+      setError(null);
       toast.success("Pengguna berhasil ditambahkan", { id: loadingToast });
     } catch (err) {
-      handleError(err);
-      toast.error("Gagal menambahkan pengguna", { id: loadingToast });
+      toast.dismiss(loadingToast);
+      handleApiError(err, "Gagal menambahkan pengguna.");
     }
   };
 
@@ -113,18 +119,17 @@ export default function ManajemenUser() {
 
   const handleDeleteUser = async () => {
     if (!userToDelete) return;
-
     const loadingToast = toast.loading("Menghapus pengguna...");
-
     try {
       await api.delete(`/users/${userToDelete.id}`);
       setUsers((prev) =>
         prev.filter((user) => user.user_id !== userToDelete.id)
       );
+      setError(null);
       toast.success("Pengguna berhasil dihapus", { id: loadingToast });
     } catch (err) {
-      handleError(err);
-      toast.error("Gagal menghapus pengguna", { id: loadingToast });
+      toast.dismiss(loadingToast);
+      handleApiError(err, "Gagal menghapus pengguna.");
     } finally {
       setShowDeleteModal(false);
       setUserToDelete(null);
@@ -136,26 +141,24 @@ export default function ManajemenUser() {
       toast.error("Harap isi semua bidang");
       return;
     }
-
     const loadingToast = toast.loading("Memperbarui pengguna...");
-
     try {
       const response = await api.put(`/users/${editingUser.id}`, {
         email: editingUser.email,
         fullname: editingUser.fullname,
         role_id: editingUser.role_id,
       });
-
       setUsers((prev) =>
         prev.map((user) =>
           user.user_id === editingUser.id ? { ...user, ...response.data } : user
         )
       );
       setEditingUser({ id: null, email: "", fullname: "", role_id: 2 });
+      setError(null);
       toast.success("Pengguna berhasil diperbarui", { id: loadingToast });
     } catch (err) {
-      handleError(err);
-      toast.error("Gagal memperbarui pengguna", { id: loadingToast });
+      toast.dismiss(loadingToast);
+      handleApiError(err, "Gagal memperbarui pengguna.");
     }
   };
 
@@ -174,18 +177,20 @@ export default function ManajemenUser() {
       </h1>
 
       <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-4 md:p-6">
-        <p className="section-description">
+        <p className="section-description mb-4">
           Kelola pengguna sistem di sini (Hanya akses admin)
         </p>
 
+        <ErrorMessage message={error} />
+
         {loading ? (
-          <LoadingSpinner message="Memuat pengguna..." />
-        ) : error ? (
-          <p className="text-red-500 text-sm">{error}</p>
-        ) : (
+          <div className="flex justify-center items-center py-16">
+            <LoadingSpinner message="Memuat pengguna..." />
+          </div>
+        ) : !error ? (
           <>
             {users.length === 0 ? (
-              <p className="text-sm text-gray-500 mt-6">
+              <p className="text-sm text-gray-500 text-center py-4">
                 Tidak ada pengguna terdaftar.
               </p>
             ) : (
@@ -306,7 +311,7 @@ export default function ManajemenUser() {
               </div>
             )}
 
-            <div className="mt-6 space-y-4">
+            <div className="mt-8 pt-6 border-t space-y-4">
               <h2 className="text-lg font-medium">Tambah Pengguna Baru</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <input
@@ -355,7 +360,7 @@ export default function ManajemenUser() {
               </button>
             </div>
           </>
-        )}
+        ) : null}
       </div>
 
       {showDeleteModal && userToDelete && (
