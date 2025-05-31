@@ -152,7 +152,7 @@ export default function DashboardSidebar() {
             className="flex items-center gap-3 p-3 rounded-md hover:bg-gray-100 transition-colors text-left w-full"
           >
             <Home className="w-5 h-5 flex-shrink-0" />
-            <span className="button-font">Home</span>
+            <span className="button-font">Halaman Utama</span>
           </button>
           <button
             onClick={confirmLogout}

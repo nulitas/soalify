@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import {
   BookOpen,
   Package,
@@ -10,7 +11,13 @@ import {
   Settings,
   LogOut,
   Home,
+  AlertTriangle,
+  Users,
 } from "lucide-react";
+import toast, { Toaster } from "react-hot-toast";
+import ConfirmModal from "@/components/ui/confirm-modal";
+
+import { useAuth } from "@/context/auth-context";
 
 interface DashboardHeaderProps {
   isMobileMenuOpen: boolean;
@@ -40,8 +47,13 @@ export default function DashboardHeader({
   setActiveTab,
 }: DashboardHeaderProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  const { user, logout } = useAuth();
 
   const isInPaketSoal = pathname.includes("/manajemen-paket-soal");
+  const userRole = user?.role_id ?? 2;
 
   const menuItems = [
     {
@@ -68,6 +80,16 @@ export default function DashboardHeader({
       tab: "manajemen-dokumen" as const,
       path: "/dashboard/manajemen-dokumen",
     },
+    ...(userRole === 1
+      ? [
+          {
+            name: "Manajemen Pengguna",
+            icon: Users,
+            tab: "manajemen-pengguna" as const,
+            path: "/dashboard/manajemen-pengguna",
+          },
+        ]
+      : []),
     {
       name: "Pengaturan",
       icon: Settings,
@@ -76,8 +98,40 @@ export default function DashboardHeader({
     },
   ];
 
+  const confirmLogout = () => {
+    setShowLogoutModal(true);
+  };
+
+  const handleLogout = () => {
+    const loadingToast = toast.loading("Sedang keluar...");
+
+    logout();
+
+    toast.success("Berhasil keluar!", { id: loadingToast });
+    setShowLogoutModal(false);
+  };
+
+  const handleHomeClick = (e: { preventDefault: () => void }) => {
+    e.preventDefault();
+    router.push("/");
+  };
+
   return (
     <>
+      <Toaster
+        toastOptions={{
+          success: {
+            style: { background: "#10B981", color: "white", fontWeight: "500" },
+          },
+          error: {
+            style: { background: "#EF4444", color: "white", fontWeight: "500" },
+          },
+          loading: {
+            style: { background: "#3B82F6", color: "white", fontWeight: "500" },
+          },
+        }}
+      />
+
       <header className="md:static md:border-none md:py-0 fixed top-0 left-0 right-0 z-30 bg-white border-b border-gray-200 py-4 px-4 md:px-6 md:ml-64">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -134,26 +188,44 @@ export default function DashboardHeader({
                 );
               })}
               <div className="h-px bg-gray-200 my-2"></div>
-              <Link
-                href="/"
-                className="flex items-center gap-3 py-2"
-                onClick={() => setIsMobileMenuOpen(false)}
+              <button
+                onClick={() => {
+                  handleHomeClick({ preventDefault: () => {} });
+                  setIsMobileMenuOpen(false);
+                }}
+                className="flex items-center gap-3 py-2 text-left w-full"
               >
                 <Home className="w-5 h-5" />
-                <span className="nav-text">Home</span>
-              </Link>
-              <Link
-                href="/login"
-                className="flex items-center gap-3 py-2"
-                onClick={() => setIsMobileMenuOpen(false)}
+                <span className="nav-text">Halaman Utama</span>
+              </button>
+              <button
+                onClick={() => {
+                  confirmLogout();
+                  setIsMobileMenuOpen(false);
+                }}
+                className="flex items-center gap-3 py-2 text-left w-full"
               >
                 <LogOut className="w-5 h-5" />
-                <span className="nav-text">Logout</span>
-              </Link>
+                <span className="nav-text">Keluar</span>
+              </button>
             </div>
           </div>
         )}
       </header>
+
+      {showLogoutModal && (
+        <ConfirmModal
+          isOpen={showLogoutModal}
+          onClose={() => setShowLogoutModal(false)}
+          onConfirm={handleLogout}
+          title="Konfirmasi Keluar"
+          message="Apakah Anda yakin ingin keluar dari aplikasi?"
+          confirmText="Keluar"
+          cancelText="Batal"
+          confirmButtonClass="bg-red-600 hover:bg-red-700"
+          icon={<AlertTriangle className="h-6 w-6 text-red-600" />}
+        />
+      )}
     </>
   );
 }

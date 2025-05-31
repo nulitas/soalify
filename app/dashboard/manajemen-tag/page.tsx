@@ -80,7 +80,7 @@ export default function ManajemenTag() {
     }
     const loadingToast = toast.loading("Menambahkan tag...");
     try {
-      const response = await api.post("/tags", { tag_name: newTag });
+      const response = await api.post("/tags/", { tag_name: newTag });
       setTags((prev) => [...prev, response.data]);
       setNewTag("");
       setError(null);

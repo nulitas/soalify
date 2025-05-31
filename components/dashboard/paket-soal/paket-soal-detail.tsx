@@ -83,7 +83,7 @@ export default function PaketSoalDetail({ paketId }: PaketSoalDetailProps) {
 
         const [packageRes, tagsRes] = await Promise.all([
           api.get(`/packages/${paketId}`),
-          api.get("/tags"),
+          api.get("/tags/"),
         ]);
 
         if (!packageRes.data.user_id) {
