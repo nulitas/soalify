@@ -57,6 +57,9 @@ export default function LoginPage() {
     e.preventDefault();
     if (!validateForm()) return;
 
+    // console.log("API URL:", process.env.NEXT_PUBLIC_API_URL);
+    // console.log("Full URL:", `${process.env.NEXT_PUBLIC_API_URL}/users/login`);
+
     setLoading(true);
     const loadingToast = toast.loading("Mencoba masuk...");
 
@@ -67,7 +70,12 @@ export default function LoginPage() {
           username: formData.email,
           password: formData.password,
         }),
-        { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+        {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Bypass-Tunnel-Reminder": "true",
+          },
+        }
       );
 
       login(response.data.access_token, response.data.user);

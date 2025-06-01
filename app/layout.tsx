@@ -18,7 +18,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "soalify",
-  description: "A platform for creating questions and answers for teachers",
+  description: "Platform Pembuat Soal dan Jawaban Otomatis",
   generator: "v0.dev",
 };
 

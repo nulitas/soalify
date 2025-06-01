@@ -67,6 +67,7 @@ export default function QuestionGenerator({
             rows={6}
             className="w-full px-4 py-3 border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-black resize-none"
             required
+            maxLength={2000}
           ></textarea>
           <p className="text-xs text-gray-500">
             Sediakan teks yang terperinci untuk pembuatan pertanyaan yang lebih
