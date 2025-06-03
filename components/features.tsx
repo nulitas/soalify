@@ -10,7 +10,7 @@ export default function Features() {
     {
       title: "Kelola Akun Pengguna",
       description:
-        "Admin juga bisa membuat akun baru untuk guru, menghapus akun, atau mereset data jika diperlukan.",
+        "Admin juga bisa membuat akun baru untuk guru, menghapus akun, atau mengubah password jika diperlukan.",
       step: "02",
       side: "right",
     },
@@ -24,7 +24,7 @@ export default function Features() {
     {
       title: "Membuat Soal dan Jawaban",
       description:
-        'Guru cukup mengisi topik atau konteks materi yang ingin dibuatkan soal, misalnya "Materi Bahasa Indonesia". Setelah itu, Soalify akan langsung membuatkan soal beserta jawabannya sesuai materi yang telah diunggah oleh admin sebelumnya.',
+        'Guru cukup mengisi topik atau konteks materi yang ingin dibuatkan soal, misalnya "Kalimat Retorik". Setelah itu, Soalify akan langsung membuatkan soal beserta jawabannya sesuai materi yang telah diunggah oleh admin sebelumnya.',
       step: "04",
       side: "right",
     },

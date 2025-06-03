@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { Loader2, FileText, CheckCircle, Circle } from "lucide-react";
+import {
+  Loader2,
+  FileText,
+  CheckCircle,
+  Circle,
+  Search,
+  BookOpen,
+  Lightbulb,
+  AlertCircle,
+} from "lucide-react";
+import toast from "react-hot-toast";
 import api from "@/lib/api";
 interface Document {
   filename: string;
@@ -31,9 +41,13 @@ export default function QuestionGenerator({
   const [availableDocuments, setAvailableDocuments] = useState<Document[]>([]);
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
   const [loadingDocuments, setLoadingDocuments] = useState(false);
+  const [inputMode, setInputMode] = useState<"keywords" | "content">(
+    "keywords"
+  );
 
   useEffect(() => {
     if (useRag) {
+      setInputMode("keywords");
       fetchAvailableDocuments();
     } else {
       setSelectedDocuments([]);
@@ -50,8 +64,10 @@ export default function QuestionGenerator({
       });
 
       setAvailableDocuments(response.data.documents || []);
+      toast.success("Dokumen berhasil dimuat");
     } catch (error) {
       console.error("Error fetching documents:", error);
+      toast.error("Gagal memuat dokumen. Silakan coba lagi.");
     } finally {
       setLoadingDocuments(false);
     }
@@ -68,25 +84,53 @@ export default function QuestionGenerator({
   const handleSelectAll = () => {
     if (selectedDocuments.length === availableDocuments.length) {
       setSelectedDocuments([]);
+      toast.success("Semua dokumen dibatalkan");
     } else {
       setSelectedDocuments(availableDocuments.map((doc) => doc.filename));
+      toast.success(`${availableDocuments.length} dokumen dipilih`);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const handleSubmit = async () => {
     if (!queryText.trim()) {
-      alert("Please enter some text to generate questions from");
+      toast.error(
+        inputMode === "keywords"
+          ? "Mohon masukkan kata kunci atau topik untuk pencarian"
+          : "Mohon masukkan konten untuk membuat pertanyaan",
+        {
+          duration: 4000,
+          icon: "⚠️",
+        }
+      );
+      return;
+    }
+
+    if (inputMode === "keywords" && queryText.trim().length < 3) {
+      toast.error("Kata kunci terlalu pendek. Minimal 3 karakter.", {
+        duration: 4000,
+        icon: "⚠️",
+      });
+      return;
+    }
+
+    if (inputMode === "content" && queryText.trim().length < 10) {
+      toast.error("Konten terlalu pendek. Minimal 10 karakter.", {
+        duration: 4000,
+        icon: "⚠️",
+      });
       return;
     }
 
     if (useRag && selectedDocuments.length === 0) {
-      alert("Please select at least one document to use RAG functionality");
+      toast.error("Pilih minimal satu dokumen untuk menggunakan fitur RAG", {
+        duration: 4000,
+        icon: "📄",
+      });
       return;
     }
 
     setIsLoading(true);
+    const loadingToast = toast.loading("Sedang membuat pertanyaan...");
 
     try {
       await onGenerate({
@@ -97,75 +141,210 @@ export default function QuestionGenerator({
         use_rag: useRag,
         selected_documents: useRag ? selectedDocuments : undefined,
       });
+
+      toast.success(
+        `${
+          allowCustomQuestionCount ? numQuestions : defaultQuestionCount
+        } pertanyaan berhasil dibuat!`,
+        {
+          id: loadingToast,
+          duration: 3000,
+          icon: "✅",
+        }
+      );
+    } catch {
+      toast.error("Gagal membuat pertanyaan. Silakan coba lagi.", {
+        id: loadingToast,
+        duration: 4000,
+        icon: "❌",
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
+  const getPlaceholderText = () => {
+    if (inputMode === "keywords") {
+      return useRag
+        ? "statistik, metode penelitian, analisis data..."
+        : "topik matematika, sejarah Indonesia, biologi sel...";
+    } else {
+      return "Masukkan materi atau konten yang ingin dijadikan dasar pembuatan soal...";
+    }
+  };
+
+  const getInputDescription = () => {
+    if (inputMode === "keywords") {
+      return useRag
+        ? "Masukkan kata kunci untuk mencari informasi dalam dokumen yang dipilih"
+        : "Masukkan topik atau kata kunci yang ingin dijadikan tema soal";
+    } else {
+      return "Masukkan materi pembelajaran yang akan dijadikan dasar pembuatan soal";
+    }
+  };
+
   return (
     <div className="bg-white p-4 md:p-6 rounded-lg border border-gray-100 shadow-sm">
-      <h2 className="text-xl font-medium mb-4 md:mb-6">
-        Hasilkan Pertanyaan dari Teks
-      </h2>
+      <div className="mb-6">
+        <h2 className="text-xl font-medium mb-2">Generator Soal Otomatis</h2>
+        <div className="flex items-start gap-2 p-3 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+          <Lightbulb className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+          <div className="text-sm text-blue-800">
+            <p className="font-medium mb-1">Cara kerja generator soal:</p>
+            <p>
+              Sistem akan menganalisis materi yang Anda berikan dan membuat soal
+              yang relevan berdasarkan konten tersebut.
+            </p>
+          </div>
+        </div>
+      </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
-        <div className="space-y-2">
-          <label htmlFor="queryText" className="block text-sm font-medium">
-            Konten Teks
+      <div className="space-y-6">
+        {/* Input Mode Selection */}
+        <div className="space-y-3">
+          <label className="block text-sm font-medium">
+            Jenis Input Materi
           </label>
-          <textarea
-            id="queryText"
-            value={queryText}
-            onChange={(e) => setQueryText(e.target.value)}
-            placeholder="Masukkan teks yang ingin Anda buat pertanyaan..."
-            rows={6}
-            className="w-full px-4 py-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent resize-none"
-            required
-            maxLength={2000}
-          />
-          <p className="text-xs text-gray-500">
-            Sediakan teks yang terperinci untuk pembuatan pertanyaan yang lebih
-            baik. Minimal 50 karakter yang disarankan.
-          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => setInputMode("keywords")}
+              disabled={useRag}
+              className={`p-4 rounded-lg border-2 transition-all text-left ${
+                inputMode === "keywords"
+                  ? "border-black bg-gray-50"
+                  : "border-gray-200 hover:border-gray-300"
+              } ${useRag ? "opacity-75" : ""}`}
+            >
+              <div className="flex items-center gap-3">
+                <Search
+                  className={`w-5 h-5 ${
+                    inputMode === "keywords" ? "text-black" : "text-gray-500"
+                  }`}
+                />
+                <div>
+                  <div className="font-medium text-sm flex items-center gap-2">
+                    Kata Kunci & Topik
+                    {useRag && (
+                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                        Direkomendasikan untuk RAG
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-xs text-gray-600 mt-1">
+                    {useRag
+                      ? "Optimal untuk pencarian dalam dokumen"
+                      : "Masukkan topik atau kata kunci singkat"}
+                  </div>
+                </div>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setInputMode("content")}
+              disabled={useRag}
+              className={`p-4 rounded-lg border-2 transition-all text-left ${
+                inputMode === "content"
+                  ? "border-black bg-gray-50"
+                  : "border-gray-200 hover:border-gray-300"
+              } ${useRag ? "opacity-50 cursor-not-allowed" : ""}`}
+            >
+              <div className="flex items-center gap-3">
+                <BookOpen
+                  className={`w-5 h-5 ${
+                    inputMode === "content" ? "text-black" : "text-gray-500"
+                  }`}
+                />
+                <div>
+                  <div className="font-medium text-sm">Materi Lengkap</div>
+                  <div className="text-xs text-gray-600 mt-1">
+                    {useRag
+                      ? "Tidak tersedia saat RAG aktif"
+                      : "Masukkan teks materi pembelajaran"}
+                  </div>
+                </div>
+              </div>
+            </button>
+          </div>
+          {useRag && (
+            <div className="text-xs text-blue-700 bg-blue-50 p-2 rounded border-l-4 border-blue-400">
+              <strong>Mode RAG aktif:</strong> Input kata kunci dipilih otomatis
+              karena lebih efektif untuk pencarian dalam dokumen.
+            </div>
+          )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+        {/* Material Input */}
+        <div className="space-y-3">
+          <label htmlFor="queryText" className="block text-sm font-medium">
+            {inputMode === "keywords"
+              ? "Kata Kunci / Topik"
+              : "Materi Pembelajaran"}
+          </label>
+
+          {inputMode === "keywords" ? (
+            <input
+              type="text"
+              id="queryText"
+              value={queryText}
+              onChange={(e) => setQueryText(e.target.value)}
+              placeholder={getPlaceholderText()}
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+              required
+              maxLength={200}
+            />
+          ) : (
+            <textarea
+              id="queryText"
+              value={queryText}
+              onChange={(e) => setQueryText(e.target.value)}
+              placeholder={getPlaceholderText()}
+              rows={4}
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent resize-none"
+              required
+              maxLength={1000}
+            />
+          )}
+
+          <div className="flex justify-between items-start">
+            <p className="text-xs text-gray-600">{getInputDescription()}</p>
+            <p className="text-xs text-gray-400">
+              {queryText.length}/{inputMode === "keywords" ? "200" : "1000"}
+            </p>
+          </div>
+        </div>
+
+        {/* Settings Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {allowCustomQuestionCount && (
             <div className="space-y-2">
               <label
                 htmlFor="numQuestions"
                 className="block text-sm font-medium"
               >
-                Jumlah Pertanyaan
+                Jumlah Soal
               </label>
-              <input
-                type="number"
+              <select
                 id="numQuestions"
                 value={numQuestions}
-                onChange={(e) =>
-                  setNumQuestions(
-                    Math.max(
-                      1,
-                      Math.min(5, Number.parseInt(e.target.value) || 1)
-                    )
-                  )
-                }
-                min="1"
-                max="5"
-                className="w-full px-4 py-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                aria-label="Select number of questions between 1 and 5"
-              />
-              <p className="text-xs text-gray-500">
-                Pilih antara 1-5 pertanyaan
-              </p>
+                onChange={(e) => setNumQuestions(Number(e.target.value))}
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+              >
+                {[1, 2, 3, 4, 5].map((num) => (
+                  <option key={num} value={num}>
+                    {num} soal
+                  </option>
+                ))}
+              </select>
             </div>
           )}
 
-          <div className="space-y-2">
-            <label className="block text-sm font-medium mb-2">
-              Opsi Lanjutan
+          <div className="space-y-3">
+            <label className="block text-sm font-medium">
+              Sumber Referensi
             </label>
-            <div className="flex items-center">
+            <div className="flex items-center p-3 border border-gray-200 rounded-lg">
               <input
                 type="checkbox"
                 id="useRag"
@@ -173,21 +352,32 @@ export default function QuestionGenerator({
                 onChange={(e) => setUseRag(e.target.checked)}
                 className="w-4 h-4 text-black focus:ring-black border-gray-300 rounded"
               />
-              <label htmlFor="useRag" className="ml-2 block text-sm">
-                Gunakan Informasi dari Dokumen yang tersimpan
+              <label htmlFor="useRag" className="ml-3 flex-1">
+                <div className="text-sm font-medium">
+                  Gunakan Dokumen Tersimpan
+                </div>
+                <div className="text-xs text-gray-600">
+                  Tambahkan referensi dari dokumen yang sudah diupload
+                </div>
               </label>
             </div>
-            <p className="text-xs text-gray-500">
-              Meningkatkan kualitas pertanyaan dengan konteks tambahan
-            </p>
           </div>
         </div>
 
         {/* Document Selection Section */}
         {useRag && (
-          <div className="space-y-4 p-4 bg-gray-50 rounded-lg border">
+          <div className="space-y-4 p-4 bg-amber-50 rounded-lg border border-amber-200">
+            <div className="flex items-center gap-2 mb-3">
+              <AlertCircle className="w-5 h-5 text-amber-600" />
+              <div className="text-sm text-amber-800">
+                <strong>Mode Dokumen Aktif:</strong> Sistem akan mencari
+                informasi dalam dokumen yang dipilih berdasarkan input Anda di
+                atas.
+              </div>
+            </div>
+
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-medium">Pilih Dokumen</h3>
+              <h3 className="text-sm font-medium">Pilih Dokumen Referensi</h3>
               {availableDocuments.length > 0 && (
                 <button
                   type="button"
@@ -216,7 +406,7 @@ export default function QuestionGenerator({
                 {availableDocuments.map((doc) => (
                   <div
                     key={doc.filename}
-                    className="flex items-center p-3 bg-white rounded border hover:bg-gray-50 cursor-pointer"
+                    className="flex items-center p-3 bg-white rounded border hover:bg-gray-50 cursor-pointer transition-colors"
                     onClick={() => handleDocumentToggle(doc.filename)}
                   >
                     <div className="flex-shrink-0 mr-3">
@@ -255,21 +445,22 @@ export default function QuestionGenerator({
             )}
 
             {selectedDocuments.length > 0 && (
-              <div className="text-xs text-gray-600 bg-white p-2 rounded border">
-                {selectedDocuments.length} dokumen dipilih:{" "}
-                {selectedDocuments.slice(0, 3).join(", ")}
-                {selectedDocuments.length > 3 &&
-                  ` dan ${selectedDocuments.length - 3} lainnya`}
+              <div className="text-xs text-gray-600 bg-white p-3 rounded border">
+                <strong>{selectedDocuments.length} dokumen dipilih:</strong>{" "}
+                {selectedDocuments.slice(0, 2).join(", ")}
+                {selectedDocuments.length > 2 &&
+                  ` dan ${selectedDocuments.length - 2} lainnya`}
               </div>
             )}
           </div>
         )}
 
-        <div className="flex justify-end">
+        <div className="flex justify-end pt-4">
           <button
-            type="submit"
+            type="button"
+            onClick={handleSubmit}
             disabled={isLoading}
-            className="px-4 md:px-6 py-3 bg-black text-white rounded-full hover:bg-gray-800 transition-colors text-sm font-medium flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+            className="px-6 py-3 bg-black text-white rounded-full hover:bg-gray-800 transition-colors text-sm font-medium flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <>
@@ -277,11 +468,14 @@ export default function QuestionGenerator({
                 Membuat Soal...
               </>
             ) : (
-              "Bikin Soal"
+              <>
+                <Lightbulb className="w-4 h-4" />
+                Generate Soal
+              </>
             )}
           </button>
         </div>
-      </form>
+      </div>
     </div>
   );
 }

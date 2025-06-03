@@ -130,7 +130,7 @@ export default function EditPaketSoal({
     use_rag: boolean;
   }) => {
     try {
-      const loadingToast = toast.loading("Menghasilkan soal...");
+      // const loadingToast = toast.loading("Menghasilkan soal...");
 
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/questions/generate`,
@@ -147,10 +147,10 @@ export default function EditPaketSoal({
         method: response.data.method,
       });
 
-      toast.success(
-        `Berhasil menghasilkan ${response.data.result.questions.length} soal`,
-        { id: loadingToast }
-      );
+      // toast.success(
+      //   `Berhasil menghasilkan ${response.data.result.questions.length} soal`,
+      //   { id: loadingToast }
+      // );
     } catch (error) {
       console.error("Error generating questions:", error);
       toast.error("Gagal menghasilkan pertanyaan. Silakan coba lagi.");

@@ -182,7 +182,7 @@ export default function ManajemenTag() {
         ) : !error ? (
           <>
             {tags.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center py-4">
+              <p className="text-sm text-gray-500 py-4">
                 Tidak ada tag yang tersedia.
               </p>
             ) : (

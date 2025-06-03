@@ -265,7 +265,7 @@ export default function ManajemenDokumen() {
             <>
               {documents.length === 0 ? (
                 <p className="text-sm text-gray-500 text-center py-4">
-                  Tidak ada dokumen yang tersedia.
+                  Silakan minta admin untuk mengupload dokumen.
                 </p>
               ) : (
                 <div className="space-y-3">

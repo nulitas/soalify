@@ -291,7 +291,7 @@ export default function ManajemenUser() {
                                 }
                                 className="text-blue-500 hover:text-blue-700"
                               >
-                                Edit
+                                Ubah
                               </button>
                               <button
                                 onClick={() =>
