@@ -16,8 +16,23 @@ export default function GeneratedQuestions({
 }: GeneratedQuestionsProps) {
   const [copied, setCopied] = useState(false);
 
+  const validQuestionsToDisplay = result?.questions?.filter(
+    (q) => q.question && q.question.trim() !== ""
+  );
+
+  if (!validQuestionsToDisplay || validQuestionsToDisplay.length === 0) {
+    return (
+      <div className="bg-white p-4 md:p-6 rounded-lg border border-gray-100 shadow-sm text-center">
+        <p className="text-gray-700 text-base">
+          {" "}
+          Maaf, konteks materi tidak ditemukan.
+        </p>
+      </div>
+    );
+  }
+
   const handleCopy = () => {
-    const formattedText = result.questions
+    const formattedText = validQuestionsToDisplay
       .map(
         (q, index) =>
           `Pertanyaan ${index + 1}: ${q.question}\nJawaban: ${q.answer}`
@@ -51,7 +66,7 @@ export default function GeneratedQuestions({
       </div>
 
       <div className="space-y-4 md:space-y-6">
-        {result.questions.map((item, index) => (
+        {validQuestionsToDisplay.map((item, index) => (
           <div
             key={index}
             className="border border-gray-100 rounded-md p-3 md:p-4 bg-gray-50"

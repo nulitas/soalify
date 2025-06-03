@@ -113,8 +113,8 @@ export default function QuestionGenerator({
       return;
     }
 
-    if (inputMode === "content" && queryText.trim().length < 10) {
-      toast.error("Konten terlalu pendek. Minimal 10 karakter.", {
+    if (inputMode === "content" && queryText.trim().length < 50) {
+      toast.error("Konten terlalu pendek. Minimal 50 karakter.", {
         duration: 4000,
         icon: "⚠️",
       });
