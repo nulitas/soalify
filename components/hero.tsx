@@ -55,15 +55,20 @@ export default function Hero() {
 
           <div className="flex flex-col sm:flex-row gap-4 mb-8">
             <Link
-              href=" /register"
+              href="/register"
               className="px-8 py-3 bg-black text-white rounded-full hover:bg-gray-800 transition-all duration-200 hover:scale-105 hover:shadow-lg text-sm button-font text-center"
             >
               Daftar Sekarang
             </Link>
 
-            <button className="px-8 py-3 border border-black text-black rounded-full hover:bg-black hover:text-white transition-all duration-200 text-sm button-font">
+            <Link
+              href="https://drive.google.com/file/d/17k819Qz9gbzuIRZ5h6yTKDbmGB2jlu8q/view?usp=sharing"
+              rel="noopener noreferrer"
+              target="_blank"
+              className="px-8 py-3 border border-black text-black rounded-full hover:bg-black hover:text-white transition-all duration-200 text-sm button-font"
+            >
               Lihat Demo
-            </button>
+            </Link>
           </div>
 
           <div className="flex items-center space-x-8 text-sm text-gray-600">

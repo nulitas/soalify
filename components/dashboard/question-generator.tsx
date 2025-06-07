@@ -166,8 +166,8 @@ export default function QuestionGenerator({
   const getPlaceholderText = () => {
     if (inputMode === "keywords") {
       return useRag
-        ? "statistik, metode penelitian, analisis data..."
-        : "topik matematika, sejarah Indonesia, biologi sel...";
+        ? "bahasa Indonesia, sejarah Indonesia, biologi sel..."
+        : "topik matematika, statistik, fisika kuantum...";
     } else {
       return "Masukkan materi atau konten yang ingin dijadikan dasar pembuatan soal...";
     }
@@ -470,7 +470,7 @@ export default function QuestionGenerator({
             ) : (
               <>
                 <Lightbulb className="w-4 h-4" />
-                Generate Soal
+                Buat Soal
               </>
             )}
           </button>

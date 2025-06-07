@@ -243,8 +243,8 @@ export default function EditPaketSoal({
               className="px-3 py-1 border rounded-md text-sm"
             >
               {showQuestionGenerator
-                ? "Tutup Generator"
-                : "Gunakan Generator Soal"}
+                ? "Tutup Fitur Buat Soal Otomatis"
+                : "Gunakan Fitur Buat Soal Otomatis"}
             </button>
             <button
               onClick={handleAddQuestion}
