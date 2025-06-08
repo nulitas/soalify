@@ -56,7 +56,7 @@ export default function Hero() {
           <div className="flex flex-col sm:flex-row gap-4 mb-8">
             <Link
               href="/register"
-              className="px-8 py-3 bg-black text-white rounded-full hover:bg-gray-800 transition-all duration-200 hover:scale-105 hover:shadow-lg text-sm button-font text-center"
+              className="px-8 py-3 bg-black text-white rounded-full hover:bg-gray-800 transition-all duration-200 hover:scale-105 hover:shadow-lg text-sm button-font"
             >
               Daftar Sekarang
             </Link>

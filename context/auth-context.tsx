@@ -50,9 +50,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
     } finally {
-      setLoading(false); // Finished checking, set loading to false
+      setLoading(false);
     }
-  }, []); // Empty dependency array means it runs once on mount
+  }, []);
 
   const login = (newToken: string, userData: User) => {
     localStorage.setItem("token", newToken);

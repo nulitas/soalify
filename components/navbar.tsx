@@ -116,7 +116,7 @@ export default function Navbar() {
             ) : user ? (
               <Link
                 href="/dashboard"
-                className="nav-text py-2 text-white bg-black rounded-md text-center"
+                className="nav-text py-2 text-white bg-black rounded-md"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Dashboard
