@@ -301,7 +301,7 @@ export default function ManajemenDokumen() {
                         <button
                           onClick={() => handlePreviewDocument(doc)}
                           className="p-2 text-gray-500 hover:text-blue-500 transition-colors"
-                          title={`Preview ${doc}`}
+                          title={`Pratinjau ${doc}`}
                         >
                           <Eye className="w-4 h-4" />
                         </button>
@@ -348,7 +348,7 @@ export default function ManajemenDokumen() {
             {/* Modal Header */}
             <div className="flex items-center justify-between p-4 border-b">
               <h3 className="text-lg font-semibold truncate">
-                Preview: {previewDocument}
+                Pratinjau: {previewDocument}
               </h3>
               <button
                 onClick={closePreviewModal}
@@ -362,11 +362,11 @@ export default function ManajemenDokumen() {
               <iframe
                 src={getPreviewUrl(previewDocument)}
                 className="w-full h-full border border-gray-300 rounded"
-                title={`Preview of ${previewDocument}`}
+                title={`Pratinjau dari ${previewDocument}`}
                 onLoad={() => setPreviewLoading(false)}
               >
                 <p>
-                  Browser Anda tidak mendukung preview PDF.
+                  Browser Anda tidak mendukung pratinjau PDF.
                   <a
                     href={getPreviewUrl(previewDocument)}
                     target="_blank"

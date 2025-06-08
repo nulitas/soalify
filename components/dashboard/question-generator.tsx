@@ -425,7 +425,7 @@ export default function QuestionGenerator({
                       </div>
                       <div className="flex items-center space-x-4 mt-1">
                         <p className="text-xs text-gray-500">
-                          {doc.chunk_count} chunks
+                          {doc.chunk_count} potongan teks
                         </p>
                         {doc.page_count && (
                           <p className="text-xs text-gray-500">
