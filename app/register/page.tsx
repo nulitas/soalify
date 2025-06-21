@@ -111,7 +111,7 @@ export default function RegisterPage() {
         );
         setErrors((prev) => ({
           ...prev,
-          email: "Registrasi gagal. Silakan coba lagi.",
+          email: "Email Sudah Terdaftar",
         }));
 
         toast.error("Registrasi gagal. Periksa data Anda.", {
