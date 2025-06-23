@@ -45,6 +45,13 @@ export default function QuestionGenerator({
     "keywords"
   );
 
+  const MAX_QUESTIONS = 10;
+
+  const questionOptions = Array.from(
+    { length: MAX_QUESTIONS },
+    (_, i) => i + 1
+  );
+
   useEffect(() => {
     if (useRag) {
       setInputMode("keywords");
@@ -331,7 +338,8 @@ export default function QuestionGenerator({
                 onChange={(e) => setNumQuestions(Number(e.target.value))}
                 className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
               >
-                {[1, 2, 3, 4, 5].map((num) => (
+                {/* 3. Gunakan array dinamis yang sudah dibuat */}
+                {questionOptions.map((num) => (
                   <option key={num} value={num}>
                     {num} soal
                   </option>
