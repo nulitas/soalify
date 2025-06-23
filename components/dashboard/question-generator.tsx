@@ -27,15 +27,21 @@ interface QuestionGeneratorProps {
   }) => void;
   allowCustomQuestionCount?: boolean;
   defaultQuestionCount?: number;
+
+  maxQuestionsAllowed?: number;
 }
 
 export default function QuestionGenerator({
   onGenerate,
   allowCustomQuestionCount = true,
   defaultQuestionCount = 1,
+
+  maxQuestionsAllowed = 30,
 }: QuestionGeneratorProps) {
   const [queryText, setQueryText] = useState("");
-  const [numQuestions, setNumQuestions] = useState(defaultQuestionCount);
+  const [numQuestions, setNumQuestions] = useState(
+    String(defaultQuestionCount)
+  );
   const [useRag, setUseRag] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [availableDocuments, setAvailableDocuments] = useState<Document[]>([]);
@@ -45,12 +51,12 @@ export default function QuestionGenerator({
     "keywords"
   );
 
-  const MAX_QUESTIONS = 10;
+  // const MAX_QUESTIONS = 10;
 
-  const questionOptions = Array.from(
-    { length: MAX_QUESTIONS },
-    (_, i) => i + 1
-  );
+  // const questionOptions = Array.from(
+  //   { length: MAX_QUESTIONS },
+  //   (_, i) => i + 1
+  // );
 
   useEffect(() => {
     if (useRag) {
@@ -128,6 +134,24 @@ export default function QuestionGenerator({
       return;
     }
 
+    const num = Number(numQuestions);
+    if (!numQuestions || isNaN(num) || !Number.isInteger(num) || num <= 0) {
+      toast.error("Jumlah soal harus berupa angka bulat lebih dari 0.", {
+        icon: "🔢",
+      });
+      return;
+    }
+
+    if (num > maxQuestionsAllowed) {
+      toast.error(
+        `Jumlah soal tidak boleh lebih dari ${maxQuestionsAllowed}.`,
+        {
+          icon: "⚠️",
+        }
+      );
+      return;
+    }
+
     if (useRag && selectedDocuments.length === 0) {
       toast.error("Pilih minimal satu dokumen untuk menggunakan fitur RAG", {
         duration: 4000,
@@ -137,14 +161,14 @@ export default function QuestionGenerator({
     }
 
     setIsLoading(true);
-    const loadingToast = toast.loading("Sedang membuat pertanyaan...");
+    const loadingToast = toast.loading(
+      "Sedang membuat pasangan pertanyaan-jawaban..."
+    );
 
     try {
       await onGenerate({
         query_text: queryText,
-        num_questions: allowCustomQuestionCount
-          ? numQuestions
-          : defaultQuestionCount,
+        num_questions: num,
         use_rag: useRag,
         selected_documents: useRag ? selectedDocuments : undefined,
       });
@@ -152,7 +176,7 @@ export default function QuestionGenerator({
       toast.success(
         `${
           allowCustomQuestionCount ? numQuestions : defaultQuestionCount
-        } pertanyaan berhasil dibuat!`,
+        } pasangan pertanyaan-jawaban berhasil dibuat!`,
         {
           id: loadingToast,
           duration: 3000,
@@ -330,21 +354,19 @@ export default function QuestionGenerator({
                 htmlFor="numQuestions"
                 className="block text-sm font-medium"
               >
-                Jumlah Soal
+                Jumlah Soal (Maks: {maxQuestionsAllowed})
               </label>
-              <select
+              {/* Perubahan: Mengganti <select> dengan <input type="number"> */}
+              <input
+                type="number"
                 id="numQuestions"
                 value={numQuestions}
-                onChange={(e) => setNumQuestions(Number(e.target.value))}
+                onChange={(e) => setNumQuestions(e.target.value)}
+                min="1"
+                max={maxQuestionsAllowed}
+                placeholder="Contoh: 5"
                 className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-              >
-                {/* 3. Gunakan array dinamis yang sudah dibuat */}
-                {questionOptions.map((num) => (
-                  <option key={num} value={num}>
-                    {num} soal
-                  </option>
-                ))}
-              </select>
+              />
             </div>
           )}
 
