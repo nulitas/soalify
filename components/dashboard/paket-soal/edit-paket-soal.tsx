@@ -257,7 +257,6 @@ export default function EditPaketSoal({
 
         {showQuestionGenerator && (
           <div className="mt-4 p-4 border rounded-lg">
-            <h3 className="text-md font-medium mb-3">Generator Soal</h3>
             <QuestionGenerator onGenerate={handleGenerateQuestions} />
 
             {generatedContent && (

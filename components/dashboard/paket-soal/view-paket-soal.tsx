@@ -173,11 +173,11 @@ export default function ViewPaketSoal({
           >
             {copied ? (
               <>
-                <Check className="w-4 h-4" /> Copied
+                <Check className="w-4 h-4" /> Tersalin
               </>
             ) : (
               <>
-                <Copy className="w-4 h-4" /> Copy
+                <Copy className="w-4 h-4" /> Salin
               </>
             )}
           </button>
@@ -187,7 +187,7 @@ export default function ViewPaketSoal({
               onClick={() => setExportMenuOpen(!exportMenuOpen)}
               className="flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded-md"
             >
-              <Download className="w-4 h-4" /> Export
+              <Download className="w-4 h-4" /> Ekspor
             </button>
 
             {exportMenuOpen && (
@@ -226,7 +226,7 @@ export default function ViewPaketSoal({
             onClick={onEdit}
             className="flex items-center gap-1 px-3 py-1 bg-black text-white rounded-md"
           >
-            <Edit className="w-4 h-4" /> Edit
+            <Edit className="w-4 h-4" /> Ubah Paket
           </button>
         </div>
       </div>

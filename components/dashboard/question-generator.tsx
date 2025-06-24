@@ -217,11 +217,11 @@ export default function QuestionGenerator({
   return (
     <div className="bg-white p-4 md:p-6 rounded-lg border border-gray-100 shadow-sm">
       <div className="mb-6">
-        <h2 className="text-xl font-medium mb-2">Generator Soal Otomatis</h2>
+        <h2 className="text-xl font-medium mb-2">Buat Soal Otomatis</h2>
         <div className="flex items-start gap-2 p-3 bg-blue-50 rounded-lg border-l-4 border-blue-400">
           <Lightbulb className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
           <div className="text-sm text-blue-800">
-            <p className="font-medium mb-1">Cara kerja generator soal:</p>
+            <p className="font-medium mb-1">Cara kerja pembuatan soal:</p>
             <p>
               Sistem akan menganalisis materi yang Anda berikan dan membuat soal
               yang relevan berdasarkan konten tersebut.
