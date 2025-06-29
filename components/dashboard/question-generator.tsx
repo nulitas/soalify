@@ -8,9 +8,12 @@ import {
   BookOpen,
   Lightbulb,
   AlertCircle,
+  Target,
+  GraduationCap,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import api from "@/lib/api";
+
 interface Document {
   filename: string;
   chunk_count: number;
@@ -24,10 +27,10 @@ interface QuestionGeneratorProps {
     num_questions: number;
     use_rag: boolean;
     selected_documents?: string[];
+    target_learning_outcome: string;
   }) => void;
   allowCustomQuestionCount?: boolean;
   defaultQuestionCount?: number;
-
   maxQuestionsAllowed?: number;
 }
 
@@ -35,7 +38,6 @@ export default function QuestionGenerator({
   onGenerate,
   allowCustomQuestionCount = true,
   defaultQuestionCount = 1,
-
   maxQuestionsAllowed = 30,
 }: QuestionGeneratorProps) {
   const [queryText, setQueryText] = useState("");
@@ -43,6 +45,7 @@ export default function QuestionGenerator({
     String(defaultQuestionCount)
   );
   const [useRag, setUseRag] = useState(false);
+  const [targetLearningOutcome, setTargetLearningOutcome] = useState("auto");
   const [isLoading, setIsLoading] = useState(false);
   const [availableDocuments, setAvailableDocuments] = useState<Document[]>([]);
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
@@ -51,12 +54,38 @@ export default function QuestionGenerator({
     "keywords"
   );
 
-  // const MAX_QUESTIONS = 10;
-
-  // const questionOptions = Array.from(
-  //   { length: MAX_QUESTIONS },
-  //   (_, i) => i + 1
-  // );
+  const learningOutcomeOptions = [
+    {
+      value: "auto",
+      label: "Otomatis (Sistem Pilih)",
+      description: "Sistem akan memilih capaian pembelajaran yang paling sesuai",
+      icon: "🤖",
+    },
+    {
+      value: "pengetahuan_faktual",
+      label: "Pengetahuan Faktual",
+      description: "Mengingat dan memahami fakta, istilah, dan informasi dasar",
+      icon: "📚",
+    },
+    {
+      value: "pemahaman_konseptual",
+      label: "Pemahaman Konseptual",
+      description: "Memahami konsep, prinsip, dan hubungan antar ide",
+      icon: "🧠",
+    },
+    {
+      value: "penerapan_prosedural",
+      label: "Penerapan Prosedural",
+      description: "Menerapkan prosedur dan langkah-langkah dalam praktik",
+      icon: "⚙️",
+    },
+    {
+      value: "analisis_sederhana",
+      label: "Analisis Sederhana",
+      description: "Menganalisis informasi dan membuat kesimpulan dasar",
+      icon: "🔍",
+    },
+  ];
 
   useEffect(() => {
     if (useRag) {
@@ -171,6 +200,7 @@ export default function QuestionGenerator({
         num_questions: num,
         use_rag: useRag,
         selected_documents: useRag ? selectedDocuments : undefined,
+        target_learning_outcome: targetLearningOutcome,
       });
 
       toast.success(
@@ -214,6 +244,12 @@ export default function QuestionGenerator({
     }
   };
 
+  const getSelectedOutcomeInfo = () => {
+    return learningOutcomeOptions.find(
+      (option) => option.value === targetLearningOutcome
+    );
+  };
+
   return (
     <div className="bg-white p-4 md:p-6 rounded-lg border border-gray-100 shadow-sm">
       <div className="mb-6">
@@ -224,7 +260,7 @@ export default function QuestionGenerator({
             <p className="font-medium mb-1">Cara kerja pembuatan soal:</p>
             <p>
               Sistem akan menganalisis materi yang Anda berikan dan membuat soal
-              yang relevan berdasarkan konten tersebut.
+              yang relevan berdasarkan konten dan target capaian pembelajaran.
             </p>
           </div>
         </div>
@@ -344,6 +380,53 @@ export default function QuestionGenerator({
           </div>
         </div>
 
+        {/* Learning Outcome Selection */}
+        <div className="space-y-3">
+          <label className="flex text-sm font-medium items-center gap-2">
+            <Target className="w-4 h-4" />
+            Target Capaian Pembelajaran
+          </label>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {learningOutcomeOptions.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setTargetLearningOutcome(option.value)}
+                className={`p-4 rounded-lg border-2 transition-all text-left ${
+                  targetLearningOutcome === option.value
+                    ? "border-black bg-gray-50"
+                    : "border-gray-200 hover:border-gray-300"
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <span className="text-lg">{option.icon}</span>
+                  <div className="flex-1">
+                    <div className="font-medium text-sm">{option.label}</div>
+                    <div className="text-xs text-gray-600 mt-1">
+                      {option.description}
+                    </div>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {targetLearningOutcome !== "auto" && (
+            <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+              <div className="flex items-center gap-2">
+                <GraduationCap className="w-4 h-4 text-green-600" />
+                <span className="text-sm font-medium text-green-800">
+                  Target Dipilih: {getSelectedOutcomeInfo()?.label}
+                </span>
+              </div>
+              <p className="text-xs text-green-700 mt-1">
+                Sistem akan membuat soal yang fokus pada capaian pembelajaran ini
+              </p>
+            </div>
+          )}
+        </div>
+
         {/* Settings Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {allowCustomQuestionCount && (
@@ -354,7 +437,6 @@ export default function QuestionGenerator({
               >
                 Jumlah Soal (Maks: {maxQuestionsAllowed})
               </label>
-              {/* Perubahan: Mengganti <select> dengan <input type="number"> */}
               <input
                 type="number"
                 id="numQuestions"

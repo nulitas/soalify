@@ -11,38 +11,46 @@ import {
   GraduationCap,
 } from "lucide-react";
 
+interface Question {
+  question: string;
+  answer: string;
+  learning_outcome_achieved: string;
+}
+
+interface Metadata {
+  count: number;
+  education_level: string;
+  target_learning_outcome: string;
+  actual_learning_outcome: string;
+  level_reasoning: string;
+  outcome_reasoning: string;
+  status: string;
+  error_message?: string;
+}
+
+interface GeneratedResult {
+  questions: Question[];
+  metadata: Metadata;
+}
+
 interface GeneratedQuestionsProps {
-  result: {
-    questions: { question: string; answer: string }[];
-    metadata?: {
-      count: number;
-      education_level: string;
-      learning_outcome?: string;
-      level_reasoning: string;
-      status: string;
-      error_message?: string;
-    };
-  };
+  result: GeneratedResult;
   method: string;
 }
 
-export default function GeneratedQuestions({
-  result,
-  method,
-}: GeneratedQuestionsProps) {
+function GeneratedQuestions({ result }: GeneratedQuestionsProps) {
   const [copied, setCopied] = useState(false);
 
   const validQuestionsToDisplay = result?.questions?.filter(
     (q) => q.question && q.question.trim() !== ""
   );
 
-  // Handle error state when material is too advanced
   if (result?.metadata?.status === "error") {
     return (
       <div className="bg-red-50 p-4 md:p-6 rounded-lg border border-red-200 shadow-sm">
         <div className="flex items-center gap-3 mb-4">
           <AlertTriangle className="w-6 h-6 text-red-500" />
-          <h2 className="text-lg md:text-xl font-medium text-red-700 title-font">
+          <h2 className="text-lg md:text-xl font-medium text-red-700">
             Materi Terlalu Tinggi
           </h2>
         </div>
@@ -63,15 +71,14 @@ export default function GeneratedQuestions({
           )}
         </div>
 
-        <div className="text-xs text-red-500">
+        {/* <div className="text-xs text-red-500">
           Dianalisis menggunakan metode {method.toUpperCase()} •{" "}
           {new Date().toLocaleString()}
-        </div>
+        </div> */}
       </div>
     );
   }
 
-  // Handle case when no valid questions are found
   if (!validQuestionsToDisplay || validQuestionsToDisplay.length === 0) {
     return (
       <div className="bg-white p-4 md:p-6 rounded-lg border border-gray-100 shadow-sm text-center">
@@ -86,7 +93,9 @@ export default function GeneratedQuestions({
     const formattedText = validQuestionsToDisplay
       .map(
         (q, index) =>
-          `Pertanyaan ${index + 1}: ${q.question}\nJawaban: ${q.answer}`
+          `Pertanyaan ${index + 1}: ${q.question}\nJawaban: ${
+            q.answer
+          }\nCapaian Pembelajaran: ${q.learning_outcome_achieved}`
       )
       .join("\n\n");
 
@@ -129,7 +138,7 @@ export default function GeneratedQuestions({
   return (
     <div className="bg-white p-4 md:p-6 rounded-lg border border-gray-100 shadow-sm">
       <div className="flex items-center justify-between mb-4 md:mb-6">
-        <h2 className="text-lg md:text-xl font-medium title-font">
+        <h2 className="text-lg md:text-xl font-medium">
           Pertanyaan yang Dihasilkan
         </h2>
         <div className="flex items-center gap-2">
@@ -147,7 +156,6 @@ export default function GeneratedQuestions({
         </div>
       </div>
 
-      {/* Enhanced Metadata Section */}
       {result?.metadata && (
         <div className="mb-6 bg-gray-50 p-4 rounded-lg border border-gray-100">
           <div className="flex items-center gap-2 mb-3">
@@ -182,26 +190,46 @@ export default function GeneratedQuestions({
               </div>
             </div>
 
-            {/* New Learning Outcome Field */}
-            {result.metadata.learning_outcome && (
-              <div className="flex items-center gap-3 md:col-span-2">
+            {/* Target Learning Outcome */}
+            {result.metadata.target_learning_outcome && (
+              <div className="flex items-center gap-3">
                 <GraduationCap className="w-4 h-4 text-gray-500" />
                 <div>
                   <p className="text-xs text-gray-500 mb-1">
-                    Capaian Pembelajaran
+                    Target Capaian Pembelajaran
                   </p>
                   <span
                     className={`text-xs px-2 py-1 rounded-full border ${getLearningOutcomeColor(
-                      result.metadata.learning_outcome
+                      result.metadata.target_learning_outcome
                     )}`}
                   >
-                    {result.metadata.learning_outcome}
+                    {result.metadata.target_learning_outcome}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Actual Learning Outcome */}
+            {result.metadata.actual_learning_outcome && (
+              <div className="flex items-center gap-3">
+                <GraduationCap className="w-4 h-4 text-blue-500" />
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">
+                    Capaian Pembelajaran Aktual
+                  </p>
+                  <span
+                    className={`text-xs px-2 py-1 rounded-full border ${getLearningOutcomeColor(
+                      result.metadata.actual_learning_outcome
+                    )}`}
+                  >
+                    {result.metadata.actual_learning_outcome}
                   </span>
                 </div>
               </div>
             )}
           </div>
 
+          {/* Level Reasoning */}
           {result.metadata.level_reasoning && (
             <div className="mt-4 pt-3 border-t border-gray-200">
               <p className="text-xs text-gray-500 mb-1">
@@ -209,6 +237,18 @@ export default function GeneratedQuestions({
               </p>
               <p className="text-sm text-gray-700">
                 {result.metadata.level_reasoning}
+              </p>
+            </div>
+          )}
+
+          {/* Outcome Reasoning */}
+          {result.metadata.outcome_reasoning && (
+            <div className="mt-3 pt-3 border-t border-gray-200">
+              <p className="text-xs text-gray-500 mb-1">
+                Alasan Pemilihan Capaian Pembelajaran
+              </p>
+              <p className="text-sm text-gray-700">
+                {result.metadata.outcome_reasoning}
               </p>
             </div>
           )}
@@ -223,30 +263,50 @@ export default function GeneratedQuestions({
           >
             <div className="mb-3">
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-sm font-medium button-font">
+                <span className="text-sm font-medium">
                   Pertanyaan {index + 1}
                 </span>
               </div>
               <p className="text-sm md:text-base">{item.question}</p>
             </div>
 
-            <div>
+            <div className="mb-3">
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-sm font-medium button-font">Jawaban</span>
+                <span className="text-sm font-medium">Jawaban</span>
               </div>
               <p className="text-sm md:text-base">{item.answer}</p>
             </div>
+
+            {/* Learning Outcome Achieved for each question */}
+            {item.learning_outcome_achieved && (
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-sm font-medium">
+                    Capaian Pembelajaran
+                  </span>
+                </div>
+                <span
+                  className={`text-xs px-2 py-1 rounded-full border ${getLearningOutcomeColor(
+                    item.learning_outcome_achieved
+                  )}`}
+                >
+                  {item.learning_outcome_achieved}
+                </span>
+              </div>
+            )}
           </div>
         ))}
       </div>
 
-      <div className="mt-4 md:mt-6 text-xs text-gray-500">
+      {/* <div className="mt-4 md:mt-6 text-xs text-gray-500">
         Dihasilkan menggunakan metode {method.toUpperCase()} •{" "}
         {new Date().toLocaleString()}
         {result?.metadata?.status && (
           <span className="ml-2">• Status: {result.metadata.status}</span>
         )}
-      </div>
+      </div> */}
     </div>
   );
 }
+
+export default GeneratedQuestions;
