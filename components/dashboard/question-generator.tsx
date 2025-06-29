@@ -10,6 +10,7 @@ import {
   AlertCircle,
   Target,
   GraduationCap,
+  ChevronDown,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import api from "@/lib/api";
@@ -46,6 +47,7 @@ export default function QuestionGenerator({
   );
   const [useRag, setUseRag] = useState(false);
   const [targetLearningOutcome, setTargetLearningOutcome] = useState("auto");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [availableDocuments, setAvailableDocuments] = useState<Document[]>([]);
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
@@ -58,7 +60,8 @@ export default function QuestionGenerator({
     {
       value: "auto",
       label: "Otomatis (Sistem Pilih)",
-      description: "Sistem akan memilih capaian pembelajaran yang paling sesuai",
+      description:
+        "Sistem akan memilih capaian pembelajaran yang paling sesuai",
       icon: "🤖",
     },
     {
@@ -380,36 +383,72 @@ export default function QuestionGenerator({
           </div>
         </div>
 
-        {/* Learning Outcome Selection */}
+        {/* Learning Outcome Dropdown */}
         <div className="space-y-3">
           <label className="flex text-sm font-medium items-center gap-2">
             <Target className="w-4 h-4" />
             Target Capaian Pembelajaran
           </label>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {learningOutcomeOptions.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => setTargetLearningOutcome(option.value)}
-                className={`p-4 rounded-lg border-2 transition-all text-left ${
-                  targetLearningOutcome === option.value
-                    ? "border-black bg-gray-50"
-                    : "border-gray-200 hover:border-gray-300"
-                }`}
-              >
-                <div className="flex items-start gap-3">
-                  <span className="text-lg">{option.icon}</span>
-                  <div className="flex-1">
-                    <div className="font-medium text-sm">{option.label}</div>
+
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="w-full p-4 rounded-lg border-2 border-gray-200 hover:border-gray-300 transition-all text-left bg-white focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="text-lg">
+                    {getSelectedOutcomeInfo()?.icon}
+                  </span>
+                  <div>
+                    <div className="font-medium text-sm">
+                      {getSelectedOutcomeInfo()?.label}
+                    </div>
                     <div className="text-xs text-gray-600 mt-1">
-                      {option.description}
+                      {getSelectedOutcomeInfo()?.description}
                     </div>
                   </div>
                 </div>
-              </button>
-            ))}
+                <ChevronDown
+                  className={`w-5 h-5 text-gray-400 transition-transform ${
+                    isDropdownOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </div>
+            </button>
+
+            {isDropdownOpen && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-h-80 overflow-y-auto">
+                {learningOutcomeOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => {
+                      setTargetLearningOutcome(option.value);
+                      setIsDropdownOpen(false);
+                    }}
+                    className={`w-full p-4 text-left hover:bg-gray-50 transition-colors ${
+                      targetLearningOutcome === option.value
+                        ? "bg-blue-50 border-l-4 border-blue-500"
+                        : ""
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-lg">{option.icon}</span>
+                      <div>
+                        <div className="font-medium text-sm">
+                          {option.label}
+                        </div>
+                        <div className="text-xs text-gray-600 mt-1">
+                          {option.description}
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {targetLearningOutcome !== "auto" && (
@@ -421,7 +460,8 @@ export default function QuestionGenerator({
                 </span>
               </div>
               <p className="text-xs text-green-700 mt-1">
-                Sistem akan membuat soal yang fokus pada capaian pembelajaran ini
+                Sistem akan membuat soal yang fokus pada capaian pembelajaran
+                ini
               </p>
             </div>
           )}
