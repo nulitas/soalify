@@ -309,9 +309,7 @@ export default function QuestionGenerator({
         {/* Material Input */}
         <div className="space-y-3">
           <label htmlFor="queryText" className="block text-sm font-medium">
-            {inputMode === "keywords"
-              ? "Kata Kunci / Topik"
-              : "Materi Pembelajaran"}
+            {inputMode === "keywords" ? "Kata Kunci" : "Materi Pembelajaran"}
           </label>
 
           {inputMode === "keywords" ? (

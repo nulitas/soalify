@@ -1,7 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Copy, Check, Info, BookOpen, Target } from "lucide-react";
+import {
+  Copy,
+  Check,
+  Info,
+  BookOpen,
+  Target,
+  AlertTriangle,
+  GraduationCap,
+} from "lucide-react";
 
 interface GeneratedQuestionsProps {
   result: {
@@ -9,8 +17,10 @@ interface GeneratedQuestionsProps {
     metadata?: {
       count: number;
       education_level: string;
+      learning_outcome?: string;
       level_reasoning: string;
       status: string;
+      error_message?: string;
     };
   };
   method: string;
@@ -26,6 +36,42 @@ export default function GeneratedQuestions({
     (q) => q.question && q.question.trim() !== ""
   );
 
+  // Handle error state when material is too advanced
+  if (result?.metadata?.status === "error") {
+    return (
+      <div className="bg-red-50 p-4 md:p-6 rounded-lg border border-red-200 shadow-sm">
+        <div className="flex items-center gap-3 mb-4">
+          <AlertTriangle className="w-6 h-6 text-red-500" />
+          <h2 className="text-lg md:text-xl font-medium text-red-700 title-font">
+            Materi Terlalu Tinggi
+          </h2>
+        </div>
+
+        <div className="bg-white p-4 rounded-lg border border-red-100 mb-4">
+          <p className="text-red-700 text-base mb-3">
+            {result.metadata.error_message ||
+              "Level pencapaian materi terlalu tinggi untuk diproses."}
+          </p>
+
+          {result.metadata.level_reasoning && (
+            <div className="pt-3 border-t border-red-200">
+              <p className="text-xs text-red-600 mb-1">Analisis Level Materi</p>
+              <p className="text-sm text-red-700">
+                {result.metadata.level_reasoning}
+              </p>
+            </div>
+          )}
+        </div>
+
+        <div className="text-xs text-red-500">
+          Dianalisis menggunakan metode {method.toUpperCase()} •{" "}
+          {new Date().toLocaleString()}
+        </div>
+      </div>
+    );
+  }
+
+  // Handle case when no valid questions are found
   if (!validQuestionsToDisplay || validQuestionsToDisplay.length === 0) {
     return (
       <div className="bg-white p-4 md:p-6 rounded-lg border border-gray-100 shadow-sm text-center">
@@ -59,8 +105,24 @@ export default function GeneratedQuestions({
         return "bg-orange-100 text-orange-700 border-orange-200";
       case "Perguruan Tinggi":
         return "bg-purple-100 text-purple-700 border-purple-200";
+      case "Terlalu Tinggi":
+        return "bg-red-100 text-red-700 border-red-200";
       default:
         return "bg-gray-100 text-gray-700 border-gray-200";
+    }
+  };
+
+  const getLearningOutcomeColor = (outcome: string) => {
+    if (outcome.includes("Pengetahuan faktual")) {
+      return "bg-emerald-100 text-emerald-700 border-emerald-200";
+    } else if (outcome.includes("Pemahaman konseptual")) {
+      return "bg-cyan-100 text-cyan-700 border-cyan-200";
+    } else if (outcome.includes("Penerapan prosedural")) {
+      return "bg-indigo-100 text-indigo-700 border-indigo-200";
+    } else if (outcome.includes("Analisis")) {
+      return "bg-violet-100 text-violet-700 border-violet-200";
+    } else {
+      return "bg-gray-100 text-gray-700 border-gray-200";
     }
   };
 
@@ -85,7 +147,7 @@ export default function GeneratedQuestions({
         </div>
       </div>
 
-      {/* Metadata Section */}
+      {/* Enhanced Metadata Section */}
       {result?.metadata && (
         <div className="mb-6 bg-gray-50 p-4 rounded-lg border border-gray-100">
           <div className="flex items-center gap-2 mb-3">
@@ -119,6 +181,25 @@ export default function GeneratedQuestions({
                 </span>
               </div>
             </div>
+
+            {/* New Learning Outcome Field */}
+            {result.metadata.learning_outcome && (
+              <div className="flex items-center gap-3 md:col-span-2">
+                <GraduationCap className="w-4 h-4 text-gray-500" />
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">
+                    Capaian Pembelajaran
+                  </p>
+                  <span
+                    className={`text-xs px-2 py-1 rounded-full border ${getLearningOutcomeColor(
+                      result.metadata.learning_outcome
+                    )}`}
+                  >
+                    {result.metadata.learning_outcome}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
 
           {result.metadata.level_reasoning && (
